@@ -6,6 +6,7 @@
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
+  padding-left: 1px;
     font-family: Arial, sans-serif;
   }
   
@@ -31,6 +32,12 @@
     border-radius: 4px;
     margin-left: 10px;
     cursor: pointer;
+  }
+  .boutonch:hover{
+    font-size: 18px;
+    background-color: goldenrod;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    transition: 800ms;
   }
   
   .search-form button:disabled {
@@ -62,5 +69,5 @@
   }
   .form-group {
     flex: 0 0 calc(50% - 20px); /* Définit la largeur de chaque groupe à 50% moins les marges */
-    margin: 10px; /* Marge entre chaque groupe */
+    margin: 5px; /* Marge entre chaque groupe */
   }

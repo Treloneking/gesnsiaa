@@ -127,8 +127,8 @@ app.put('/app/modification', (req, res) => {
   const values = [Date_debut_c, Date_fin_c, Type_contrat_Id_type_contrat, Mat_employe];
 
   const contratQuery = `
-    INSERT INTO archive (Employe_Mat_employe, Date_debut_c, Date_fin_c, Type_contrat)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO archive (Employe_Mat_employe, Date_debut_c, Date_fin_c)
+    VALUES (?, ?, ?)
   `;
 
   db.query(contratQuery, [Mat_employe, Date_debut_c, Date_fin_c, Type_contrat_Id_type_contrat], (err, results) => {
@@ -278,15 +278,13 @@ app.post('/app/register', (req, res) => {
         INSERT INTO archive (
          Employe_Mat_employe,
          Date_debut_c,
-         Date_fin_c,
-         Type_contrat
-        ) VALUES (?,?,?,?)
+         Date_fin_c
+        ) VALUES (?,?,?)
       `;
       db.query(contratQuery, [
         Mat_employe,
         Date_debut_c,
         Date_fin_c,
-        Type_contrat_Id_type_contrat
         
       ], (err, results) => {
         if (err) {

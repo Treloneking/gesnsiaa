@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 import './recherche.css';
+import * as FaIcons from "react-icons/fa";
 
 function SearchPage() {
   const [matricule, setMatricule] = useState('');
@@ -68,8 +69,9 @@ function SearchPage() {
           value={agence}
           onChange={(e) => setAgence(e.target.value)}
         />
-        <button type="submit" disabled={loading}>
-          {loading ? 'Recherche en cours...' : 'Rechercher'}
+        <button className='boutonch' type="submit" disabled={loading}>
+          {loading ? 'Recherche en cours...' : <FaIcons.FaSearch />}
+
         </button>
       </form>
       <div className="results">
