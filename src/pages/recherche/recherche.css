@@ -1,0 +1,63 @@
+/* styles.css */
+.search-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .search-form {
+    display: flex;
+    margin-bottom: 20px;
+  }
+  
+  .search-form input {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .search-form button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+  
+  .search-form button:disabled {
+    background-color: #aaa;
+  }
+  
+  
+  .results ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .results li {
+    background: #f9f9f9;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .results .error {
+    color: red;
+  }
+  h1{
+    color: white;
+  }
+  p1{
+    color: white;
+  }
+  .form-group {
+    flex: 0 0 calc(50% - 20px); /* Définit la largeur de chaque groupe à 50% moins les marges */
+    margin: 10px; /* Marge entre chaque groupe */
+  }
