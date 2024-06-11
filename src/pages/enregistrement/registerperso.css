@@ -52,4 +52,17 @@
   .recap-item strong {
     font-weight: bold;
   }
+.modifback{
+    background-image: url("./../../assets/images/fond.jpg");
+         background-size: cover; 
+        background-repeat: no-repeat;
+        width: 100%; 
+        height: 1000px;
   
+}
+input {
+  box-shadow: 0 0 100000px rgba(218, 165, 32, 0.884);
+  width: 100%; /* Remplit la largeur disponible */
+  padding: 8px; /* Ajoute un espace à l'intérieur de l'input */
+  box-sizing: border-box; /* Inclut le padding dans la largeur */
+}

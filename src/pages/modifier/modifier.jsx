@@ -53,7 +53,7 @@ function UpdateEmployee() {
   };
   return (
     <div>
-      <h1>Modifier les détails de l'employé</h1>
+      <h1 className='ohe'>Modifier les détails de l'employé</h1>
       <form onSubmit={handleSubmit} className='formulaireregister'>
         <div className="form-group">
           <label>Matricule:</label>
