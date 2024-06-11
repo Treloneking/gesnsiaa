@@ -29,10 +29,11 @@ function Archive() {
     history.push(`/app/archiveplus?matricule=${matricule}`);
   };
 
-  return (<div className='search-page'>
+  return (<body className='modifback'>
+  <div className='search-page'>
     <div className='results'>
       {error && <p>{error}</p>}
-      <h1>Archive:</h1>
+      <h1 className='ohe'>Archive:</h1>
       <ul>
         {employes.map(employe => (
           <li key={employe.Mat_employe}>
@@ -44,7 +45,7 @@ function Archive() {
         ))}
       </ul>
     </div>
-    </div>
+    </div></body>
   );
 }
 

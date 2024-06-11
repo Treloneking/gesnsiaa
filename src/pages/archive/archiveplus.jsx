@@ -38,11 +38,11 @@ function Archiveplus() {
     fetchData();
   }, [matricule]); // Matricule est maintenant une dépendance de useEffect
 
-  return (
+  return (<body className='modifback'>
     <div className='archiveplus'>
       <div className='results'>
         {error && <p>{error}</p>}
-        <h1>Archive:</h1>
+        <h1 className='ohe'>Archive:</h1>
         <ul>
           {archives.map(archive => (
             <li key={archive.id}>
@@ -55,7 +55,7 @@ function Archiveplus() {
           ))}
         </ul>
       </div>
-    </div>
+    </div></body>
   );
 }
 

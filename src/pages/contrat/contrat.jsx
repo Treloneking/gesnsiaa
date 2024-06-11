@@ -32,7 +32,7 @@ function Contrat() {
   return (<div className='search-page'>
     <div className='results'>
       {error && <p>{error}</p>}
-      <h1>Contrats:</h1>
+      <h1 className='ohe'>Contrats:</h1>
       <ul>
         {contrats.map(contrat => (
           <li key={contrat.N_contrat}>
