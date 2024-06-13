@@ -53,7 +53,7 @@ function PlusInfo() {
   };
 
   return (
-    <body className='modifback'>
+    <body className='modifbackin'>
     <div className='search-page'>
       <h1 className='ohe'>Plus d'Informations sur l'Employé</h1>
       <div className='results'>

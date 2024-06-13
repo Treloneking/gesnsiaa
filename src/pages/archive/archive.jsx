@@ -29,7 +29,7 @@ function Archive() {
     history.push(`/app/archiveplus?matricule=${matricule}`);
   };
 
-  return (<body className='modifback'>
+  return (
   <div className='search-page'>
     <div className='results'>
       {error && <p>{error}</p>}
@@ -45,7 +45,7 @@ function Archive() {
         ))}
       </ul>
     </div>
-    </div></body>
+    </div>
   );
 }
 

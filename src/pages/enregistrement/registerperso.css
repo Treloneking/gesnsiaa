@@ -52,12 +52,12 @@
   .recap-item strong {
     font-weight: bold;
   }
-.modifback{
+.modifbackin{
     background-image: url("./../../assets/images/fond.jpg");
          background-size: cover; 
         background-repeat: no-repeat;
         width: 100%; 
-        height: 100px;
+        height: 140vh;
   
 }
 input {

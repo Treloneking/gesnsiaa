@@ -68,7 +68,7 @@ function Registerperso() {
       alert('Données sauvegarder:', response.data);
       history.push('/app');
     } catch (err) {
-      if (err.response && err.response.status === 500) { // 409 est le code d'erreur pour le conflit de clé primaire
+      if (err.response && err.response.status === 409) { // 409 est le code d'erreur pour le conflit de clé primaire
         const entry = formData.Mat_employe || formData.N_contrat; // Choisir un champ unique pour identifier l'entrée
         alert(`Erreur: La valeur "${entry}" que vous essayez d'ajouter existe déjà.`);
       } else {
@@ -89,6 +89,7 @@ function Registerperso() {
             type="text" 
             name="Mat_employe"
             onChange={handleChange}
+            maxLength={5}
             value={formData.Mat_employe}
             required
           />
@@ -290,7 +291,9 @@ className='REGISTRE'       type="submit"
   </div>
         )}
           {step === 3 && (
+            <div >
         <div className='recap-item'>
+            <div className='results'>
           <h1>RÉCAPITULATIF</h1>
           <p><strong>Matricule:</strong> {formData.Mat_employe}</p>
           <p><strong>Nom:</strong> {formData.Nom_employe}</p>
@@ -313,9 +316,12 @@ className='REGISTRE'       type="submit"
           </button>
           <button type="submit" onClick={handleSubmit}>
             Soumettre
-          </button>
+          </button> 
+          </div>
+        </div>
         </div>
       )}
+     
     </div>
       </>
   );

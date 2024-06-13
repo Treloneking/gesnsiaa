@@ -73,9 +73,10 @@ app.get('/app/plusinfo', (req, res) => {
 app.get('/app/recherche', (req, res) => {
   const { matricule, nom, direction, agence } = req.query;
   let sql = `
-  SELECT * 
-  FROM Employe 
-  LEFT JOIN Travail ON Travail.Employe_Mat_employe = Employe.Mat_employe
+  SELECT e.* ,t.*,c.*
+  FROM Employe e
+  LEFT JOIN Contrat c ON c.Employe_Mat_employe = e.Mat_employe
+  LEFT JOIN Travail t ON t.Employe_Mat_employe = e.Mat_employe
 `;
   let params = [];
 
@@ -124,7 +125,7 @@ app.put('/app/modification', (req, res) => {
     SET Date_debut_c = ?, Date_fin_c = ?, Type_contrat_Id_type_contrat = ?
     WHERE Mat_employe = ?
   `;
-  const values = [Date_debut_c, Date_fin_c, Type_contrat_Id_type_contrat, Mat_employe];
+  const values = [Mat_employe,Date_debut_c, Date_fin_c, Type_contrat_Id_type_contrat, ];
 
   const contratQuery = `
     INSERT INTO archive (Employe_Mat_employe, Date_debut_c, Date_fin_c)
@@ -190,9 +191,7 @@ FROM employe
 
 app.get('/app/contrat', (req, res) => {
   const query = `
-    SELECT c.N_contrat,c.Date_debut_c,c.Date_fin_c,
-    e.Mat_employe, e.Nom_employe, e.Prenom_employe, e.Email, e.Telephone, 
-    e.Date_naissance, e.Nationnalite, e.Sexe, e.Compte_Id_compte,
+    SELECT c.*,e.*,
     DATEDIFF(date_fin_c, NOW()) AS tempsrestant
     FROM contrat c
     LEFT JOIN Employe e ON c.Employe_Mat_employe = e.Mat_employe
@@ -274,24 +273,6 @@ app.post('/app/register', (req, res) => {
 
       const employeId = results.insertId;
       
-      const contratQuery = `
-        INSERT INTO archive (
-         Employe_Mat_employe,
-         Date_debut_c,
-         Date_fin_c
-        ) VALUES (?,?,?)
-      `;
-      db.query(contratQuery, [
-        Mat_employe,
-        Date_debut_c,
-        Date_fin_c,
-        
-      ], (err, results) => {
-        if (err) {
-          return db.rollback(() => {
-            res.status(500).json({ error: err.message });
-          });
-        }
       // Insertion dans la table Contrat
       const contratQuery = `
         INSERT INTO Contrat (
@@ -335,6 +316,26 @@ app.post('/app/register', (req, res) => {
               res.status(500).json({ error: err.message });
             });
           }
+          const archiveQuery = `
+        INSERT INTO archive (
+         Employe_Mat_employe,
+         Contrat_N_contrat,
+         Date_debut_c,
+         Date_fin_c
+        ) VALUES (?,?,?,?)
+      `;
+      db.query(archiveQuery, [
+        Mat_employe,
+        N_contrat,
+        Date_debut_c,
+        Date_fin_c
+        
+      ], (err, results) => {
+        if (err) {
+          return db.rollback(() => {
+            res.status(500).json({ error: err.message });
+          });
+        }
 
           
           // Valider la transaction
