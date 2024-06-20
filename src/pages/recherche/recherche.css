@@ -26,15 +26,17 @@
   .search-form button {
     padding: 10px 20px;
     font-size: 16px;
-    background-color: #007bff;
+    background-color: #111fe2;
     color: #fff;
     border: none;
     border-radius: 4px;
     margin-left: 10px;
     cursor: pointer;
+    flex: 0 0 calc(1% - 10px); /* Définit la largeur de chaque groupe à 50% moins les marges */
+  margin: 5px; /* Marge entre chaque groupe */
+  border-radius: 5px;
   }
   .boutonch:hover{
-    font-size: 18px;
     background-color: goldenrod;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     transition: 800ms;
@@ -123,4 +125,22 @@ td {
 }
 .red{ 
   background-color: red ;
+  color: #ccc;
+  text-align: center;
+  
 }
+.form-grou{
+  flex: 0 0 calc(1% - 10px); /* Définit la largeur de chaque groupe à 50% moins les marges */
+  margin: 5px; /* Marge entre chaque groupe */
+  border-radius: 5px;
+}
+.form-gro{
+position: fixed;
+  top: 570px;
+  left: 550px;
+}
+.form-mod{
+  position: fixed;
+    top: 570px;
+    left: 650px;
+  }

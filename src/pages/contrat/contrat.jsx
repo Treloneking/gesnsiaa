@@ -16,7 +16,7 @@ function Contrat() {
   const [error, setError] = useState(null);
   const history = useHistory();
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(1); // Nombre d'éléments par page par défaut
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Nombre d'éléments par page par défaut
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,7 +48,7 @@ function Contrat() {
   const handleItemsPerPageChange = (e) => {
     setItemsPerPage(parseInt(e.target.value));
   };
-  return (<div className='search-page'>
+  return (<div className='search-pag'>
     <h1>Contrat:</h1>
     
     <div className="results">
@@ -61,11 +61,10 @@ function Contrat() {
           <th>Matricule</th>
           <th>Nom</th>
           <th>Prénom</th>
-          <th>Date de naissance</th>
           <th>Sexe</th>
           <th>Direction</th>
+          <th>Date fin contrat</th>
           <th>Temps restant</th>
-          <th></th>
           <th>&nbsp;&nbsp;&nbsp;...</th>
         </tr>
       </thead>
@@ -75,11 +74,10 @@ function Contrat() {
             <td>{contrat.Mat_employe}</td>
             <td>{contrat.Nom_employe}</td>
             <td>{contrat.Prenom_employe}</td>
-            <td>{formatDate(contrat.Date_naissance)}</td>
             <td>{contrat.Sexe}</td>
             <td>{contrat.Direction_code}</td>
+            <td>{formatDate(contrat.Date_fin_c)}</td>
             <td className='red'>{contrat.tempsrestant}</td>
-            <td>{}</td>
             <td>
               <button onClick={() => handleMoreInfo(contrat.Mat_employe)}>Plus</button>
             </td>

@@ -71,45 +71,56 @@ app.get('/app/plusinfo', (req, res) => {
 
 
 app.get('/app/recherche', (req, res) => {
-  const { matricule, nom, direction, agence } = req.query;
+  const { matricule, nom, direction, agence,contrat } = req.query;
   let sql = `
   SELECT e.* ,t.*,c.*
   FROM Employe e
   LEFT JOIN Contrat c ON c.Employe_Mat_employe = e.Mat_employe
   LEFT JOIN Travail t ON t.Employe_Mat_employe = e.Mat_employe
+  ORDER BY Nom_employe
 `;
   let params = [];
 
-  if (matricule || nom || direction || agence) {
+  if (matricule || nom || direction || agence || contrat) {
     sql += 'WHERE ';
     if (matricule) {
-      sql += 'Mat_employe LIKE ?';
+      sql += 'e.Mat_employe LIKE ?';
       params.push(`%${matricule}%`);
     }
     if (nom) {
       if (matricule) {
         sql += ' AND ';
       }
-      sql += 'Nom_employe LIKE ?';
+      sql += 'e.Nom_employe LIKE ?';
       params.push(`%${nom}%`);
     }
     if (direction) {
       if (matricule || nom) {
         sql += ' AND ';
       }
-      sql += 'Direction_code LIKE ?';
+      sql += 'e.Direction_code LIKE ?';
       params.push(`%${direction}%`);
     }
     if (agence) {
       if (matricule || nom || direction) {
         sql += ' AND ';
       }
-      sql += 'Agence_Id_agence LIKE ?';
+      sql += 't.Agence_Id_agence LIKE ?';
       params.push(`%${agence}%`);
     }
+    if (contrat) {
+      if (matricule||nom||direction||agence){
+        sql += ' AND ';
+      }
+      sql += 'c.Type_contrat_Id_type_contrat LIKE ?';
+      params.push(`%${contrat}%`);
+    }
+
+    
   }
 
   db.query(sql, params, (err, results) => {
+
     if (err) {
       return res.status(500).json({ error: 'Erreur de la base de données' });
     }
@@ -118,28 +129,41 @@ app.get('/app/recherche', (req, res) => {
 });
 
 app.put('/app/modification', (req, res) => {
-  const { Date_debut_c, Date_fin_c, Type_contrat_Id_type_contrat, Mat_employe } = req.body;
+  const { Date_debut_c, Date_fin_c, Type_contrat_Id_type_contrat, Mat_employe,N_contrat } = req.body;
   const sql = `
     UPDATE employe
     JOIN contrat ON contrat.Employe_Mat_employe = employe.Mat_employe
     SET Date_debut_c = ?, Date_fin_c = ?, Type_contrat_Id_type_contrat = ?
     WHERE Mat_employe = ?
   `;
-  const values = [Mat_employe,Date_debut_c, Date_fin_c, Type_contrat_Id_type_contrat, ];
+  const values = [Mat_employe,N_contrat,Date_debut_c, Date_fin_c, Type_contrat_Id_type_contrat, ];
+  const valuess = [Date_debut_c, Date_fin_c, Type_contrat_Id_type_contrat, Mat_employe];
+  const archiveQuery = `
+  INSERT INTO archive (
+   Employe_Mat_employe,
+   Contrat_N_contrat,
+   Date_debut_c,
+   Date_fin_c,
+   Type_contrat_Id_type_contrat
+  ) VALUES (?,?,?,?,?)
+`;
+db.query(archiveQuery, [
+  Mat_employe,
+  N_contrat,
+  Date_debut_c,
+  Date_fin_c,
+  Type_contrat_Id_type_contrat
+  
+], (err, results) => {
+  if (err) {
+    return db.rollback(() => {
+      res.status(500).json({ error: err.message });
+    });
+  }
 
-  const contratQuery = `
-    INSERT INTO archive (Employe_Mat_employe, Date_debut_c, Date_fin_c)
-    VALUES (?, ?, ?)
-  `;
+});
 
-  db.query(contratQuery, [Mat_employe, Date_debut_c, Date_fin_c, Type_contrat_Id_type_contrat], (err, results) => {
-    if (err) {
-      return db.rollback(() => {
-        res.status(500).json({ error: err.message });
-      });
-    }
-
-    db.query(sql, values, (err, results) => {
+    db.query(sql, valuess, (err, results) => {
       if (err) {
         console.error('Erreur lors de la mise à jour des données :', err);
         res.status(500).json({ error: 'Erreur de serveur' });
@@ -147,18 +171,17 @@ app.put('/app/modification', (req, res) => {
         res.status(200).json({ message: 'Données mises à jour avec succès' });
       }
     });
+
   });
-});
+/*});*/
 app.get('/app/archiveplus', (req, res) => {
   const matricule = req.query.matricule; // Récupérer le matricule de la requête
   const query = `
-    SELECT a.id, Date_debut_c, Date_fin_c,
-           e.Mat_employe, e.Nom_employe, e.Prenom_employe,
-           e.Email, e.Telephone, e.Date_naissance,
-           e.Nationnalite, e.Sexe, e.Compte_Id_compte
-    FROM archive a
-    LEFT JOIN Employe e ON a.Employe_Mat_employe = e.Mat_employe
-    WHERE a.Employe_Mat_employe = ?; 
+    SELECT a.*,e.*,c.N_contrat,c.Date_debut_c,c.Date_fin_c
+FROM archive a
+LEFT JOIN employe e ON e.Mat_employe = a.Employe_Mat_employe
+LEFT JOIN contrat c ON c.N_contrat = a.Contrat_N_contrat
+WHERE Mat_employe=?
   `;
   console.log(matricule)
   db.query(query, [matricule], (error, results, fields) => {
@@ -175,8 +198,11 @@ app.get('/app/archiveplus', (req, res) => {
 
 app.get('/app/archive', (req, res) => {
   const query = `
-  SELECT Mat_employe, Nom_employe, Prenom_employe
-FROM employe
+  SELECT e.*,c.*,t.*
+FROM employe e
+LEFT JOIN travail t ON t.Employe_Mat_employe = e.Mat_employe
+LEFT JOIN contrat c ON c.Employe_Mat_employe = e.Mat_employe
+ORDER BY Nom_employe
   `;
   
   db.query(query, (error, results, fields) => {
@@ -196,6 +222,7 @@ app.get('/app/contrat', (req, res) => {
     FROM contrat c
     LEFT JOIN Employe e ON c.Employe_Mat_employe = e.Mat_employe
     WHERE DATEDIFF(date_fin_c, NOW()) < 10
+    ORDER BY Nom_employe
   `;
   
   db.query(query, (error, results, fields) => {
@@ -321,14 +348,16 @@ app.post('/app/register', (req, res) => {
          Employe_Mat_employe,
          Contrat_N_contrat,
          Date_debut_c,
-         Date_fin_c
-        ) VALUES (?,?,?,?)
+         Date_fin_c,
+         Type_contrat_Id_type_contrat
+        ) VALUES (?,?,?,?,?)
       `;
       db.query(archiveQuery, [
         Mat_employe,
         N_contrat,
         Date_debut_c,
-        Date_fin_c
+        Date_fin_c,
+        Type_contrat_Id_type_contrat
         
       ], (err, results) => {
         if (err) {
@@ -353,6 +382,9 @@ app.post('/app/register', (req, res) => {
     });
   });
 });
+
+
+
 
 
 app.listen(port, () => {

@@ -42,7 +42,7 @@ function Registerperso() {
     
         // Si des champs obligatoires sont manquants, affichez une alerte
         if (missingFields.length > 0) {
-          alert("Veuillez remplir tous les champs obligatoires.");
+          alert("Veuillez remplir tous les champs obligatoires(*) .");
         }else{
         setStep(step + 1); // Passer à l'étape suivante
       }
@@ -83,17 +83,6 @@ function Registerperso() {
       {step === 1 && (
       <form onSubmit={handleSubmit} className='formulaireregister'>
         <h1>INFORMATION PERSONNEL</h1>
-        <div className="form-group">
-          <label htmlFor="matricule">*Matricule :</label>
-          <input className='REGISTRE'
-            type="text" 
-            name="Mat_employe"
-            onChange={handleChange}
-            maxLength={5}
-            value={formData.Mat_employe}
-            required
-          />
-        </div>
         <div className="form-group">
           <label htmlFor="nom">*Nom :</label>
           <input className='REGISTRE'
@@ -151,6 +140,17 @@ className='REGISTRE'            type="text"
             name="Date_naissance"
             onChange={handleChange}
             value={formData.Date_naissance}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="matricule">*Matricule :</label>
+          <input className='REGISTRE'
+            type="text" 
+            name="Mat_employe"
+            onChange={handleChange}
+            maxLength={5}
+            value={formData.Mat_employe}
+            required
           />
         </div>
         <div className="form-group">

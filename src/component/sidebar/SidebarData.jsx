@@ -2,6 +2,7 @@ import React from 'react';
 import * as AiIcons from "react-icons/ai";
 import * as IoIcons from "react-icons/io";
 import * as FaIcons from "react-icons/fa";
+import { title } from 'process';
 export const SidebarData =[
 
 {
@@ -27,5 +28,5 @@ export const SidebarData =[
     path: "/app/contrat",
     icon: <FaIcons.FaFileContract/>,
     cName: "nav-text"
-}
+},
 ]

@@ -38,7 +38,9 @@ function UpdateEmployee() {
       setContratType(value);
     }
   };
-
+  const handlereturn = (matricule) => {
+    history.push(`/app/plusinfo?matricule=${matricule}`);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,32 +91,32 @@ function UpdateEmployee() {
         ) : null}
       </div>
       <div class="form-group">
-      <label for="nationalite">TYPE CONTRAT :</label>
+      <label for="">TYPE CONTRAT :</label>
       <select
        id="Type_contrat_Id_type_contrat"
         name="Type_contrat_Id_type_contrat"
         onChange={handleChange}
         value={formData.Type_contrat_Id_type_contrat}>
-          <option>--------</option>
         <option value="CDD">CDD</option>
         <option value="CDI">CDI</option>
         <option value="STG-ECOLE">STAGE-ECOLE</option>
       </select>
     </div> 
     <div class="form-group">
-    <label for="">Agence :</label>
+    <label for="" className='textmod'>Agence :</label>
    <select
        id="Id_agence"
         name="Id_agence"
         onChange={handleChange}
         value={formData.Id_agence } required>
-          <option> ------- </option>
+        <option disabled default selected>Selection de l'agence</option>
         <option value="BOUAK">BOUKE</option>
         <option value="ABIDJ">ABIDJAN</option>
         <option value="YAMOU">YAMOUSSOKRO</option>
       </select>
     </div>
-        <button type="submit">Enregistrer les modifications</button>
+    <button className="form-gro" onClick={() => handlereturn(formData.Mat_employe)}>Retour</button>
+    <button className='form-mod' type="submit">Enregistrer les modifications</button>
       </form>
     </div >
   );
