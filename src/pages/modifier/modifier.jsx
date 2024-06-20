@@ -12,7 +12,7 @@ function UpdateEmployee() {
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/app/recherche?matricule=${matricule}`);
+        const response = await axios.get(`http://localhost:5000/app/plusinfo?matricule=${matricule}`);
         if (response.data.length > 0) {
           setFormData(response.data[0]);
         } else {

@@ -9,6 +9,13 @@
   padding-left: 1px;
     font-family: Arial, sans-serif;
   }
+  .search-pag{
+    background-image: url("./../../assets/images/fond.jpg");
+    background-size: cover; 
+   background-repeat: no-repeat;
+   max-width: auto;
+   max-height: auto;
+  }
   
   .search-form {
     display: flex;
