@@ -5,7 +5,7 @@ import Login from '../login/login';
 function App() {
   return (
     <>
-    <body className='fondside'>
+    <div className='fondside'>
       
    
     <Router>
@@ -14,7 +14,7 @@ function App() {
     <Route path="/app"  component={Acceuil} />
    </Switch>
    </Router>
-    </body>
+    </div>
    </>
   );
 }

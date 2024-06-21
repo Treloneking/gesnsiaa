@@ -12,7 +12,7 @@ import Archiveplus from '../archive/archiveplus';
 function Acceuil() {
     return (
             <>
-    <body className='fondacceuil'>
+    <div className='fondacceuil'>
       
 
     <Router>
@@ -27,7 +27,7 @@ function Acceuil() {
     <Route path="/app/archiveplus" component={Archiveplus} />
    </Switch>
    </Router>
-    </body>
+    </div>
    </>
   );
 }

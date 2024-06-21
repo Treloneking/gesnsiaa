@@ -218,6 +218,7 @@ function SearchPage() {
         )}
       </div>
     </div>
+  
   );
 }
 
