@@ -294,7 +294,7 @@ className='REGISTRE'       type="submit"
             <div >
         <div className='recap-item'>
             <div className='results'>
-          <h1>RÉCAPITULATIF</h1>
+          <p>RÉCAPITULATIF</p>
           <p><strong>Matricule:</strong> {formData.Mat_employe}</p>
           <p><strong>Nom:</strong> {formData.Nom_employe}</p>
           <p><strong>Prénom:</strong> {formData.Prenom_employe}</p>
