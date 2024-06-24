@@ -1,10 +1,11 @@
+// login.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 import './login.css';
 import logo from './../../assets/images/logo (1).png';
 
-const Login = () => {
+const Login = ({ onLogin }) => {
   const [id_user, setIdUser] = useState('');
   const [mot_de_passe, setMotDePasse] = useState('');
   const [error, setError] = useState('');
@@ -15,7 +16,11 @@ const Login = () => {
     try {
       const response = await axios.post('http://localhost:5000/login', { id_user, mot_de_passe });
       if (response.status === 200) {
-        // Rediriger vers app.jsx en cas de succès
+        // Stocker le token JWT dans le localStorage
+        localStorage.setItem('token', response.data.token);
+        // Appeler la fonction onLogin pour mettre à jour l'état d'authentification dans App.jsx
+        onLogin();
+        // Rediriger vers /app en cas de succès
         history.push('/app');
       }
     } catch (err) {
@@ -28,12 +33,11 @@ const Login = () => {
   };
 
   return (
-    
     <div className='loginBackground'>
       <form onSubmit={handleSubmit} className='formulaireconnect'>
         <div className='logo1'>
-        <br/><br/>
-      <img src={logo} width={100} height={100} />
+          <br /><br />
+          <img src={logo} width={100} height={100} alt="Logo" />
         </div>
         <div>
           <label htmlFor="id_user">ID Utilisateur:</label>
@@ -56,11 +60,9 @@ const Login = () => {
           />
         </div>
         {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit" className='bouton
-        '>Se Connecter</button>
+        <button type="submit" className='bouton'>Se Connecter</button>
       </form>
     </div>
-  
   );
 };
 

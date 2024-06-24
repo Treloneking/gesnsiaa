@@ -37,11 +37,13 @@
   }
   
   .recap-item {
-    border: 1px solid #ccc;
+    color: black;
+    border: 1px solid black;
     border-radius: 4px;
     padding: 20px;
+    width: 500px;
     margin-bottom: 20px;
-    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.932);
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   }
   
@@ -56,8 +58,8 @@
     background-image: url("./../../assets/images/fond.jpg");
          background-size: cover; 
         background-repeat: no-repeat;
-        width: 100%; 
-        height: 72vw;
+        max-width: auto; 
+        max-height: auto;
   
 }
 input {

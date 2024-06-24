@@ -291,7 +291,7 @@ className='REGISTRE'       type="submit"
   </div>
         )}
           {step === 3 && (
-            <div >
+            <div className='search-page'>
         <div className='recap-item'>
             <div className='results'>
           <h1>RÉCAPITULATIF</h1>

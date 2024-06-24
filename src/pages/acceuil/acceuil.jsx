@@ -9,9 +9,10 @@ import PlusInfo from '../recherche/plusinfo';
 import Contrat from '../contrat/contrat';
 import Archive from '../archive/archive';
 import Archiveplus from '../archive/archiveplus';
+import Notif from '../../component/notif/notif';
 function Acceuil() {
     return (
-            <>
+        
     <div className='fondacceuil'>
       
 
@@ -25,10 +26,10 @@ function Acceuil() {
     <Route path="/app/contrat" component={Contrat}/>
     <Route path="/app/archive" component={Archive}/>
     <Route path="/app/archiveplus" component={Archiveplus} />
+    <Route path="/app/notification" component={Notif}/>
    </Switch>
    </Router>
     </div>
-   </>
   );
 }
 

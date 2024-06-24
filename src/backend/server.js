@@ -1,8 +1,22 @@
+//backend
+// Importez dotenv et chargez les variables d'environnement
+require('dotenv').config({ path: '../../.env' });
+
+// Récupérez la clé secrète JWT depuis les variables d'environnement
+const jwtSecret = process.env.JWT_SECRET;
+
+// Vérifiez si la clé secrète JWT est définie
+if (!jwtSecret) {
+  console.error('La clé secrète JWT n\'est pas définie dans les variables d\'environnement.');
+  process.exit(1); // Arrête le processus Node en cas d'erreur critique
+}
+
 const express = require('express');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const app = express();
 const port = 5000;
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
 // Configuration de la connexion à la base de données
@@ -18,25 +32,42 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Route de connexion
+// Route de connexion
 app.post('/login', (req, res) => {
   const { id_user, mot_de_passe } = req.body;
 
-  const sql = 'SELECT * FROM utilisateur WHERE id_user = ? AND mot_de_passe = ?';
+  const sql = 'SELECT count(*) as nbr FROM utilisateur WHERE id_user = ? AND mot_de_passe = ?';
   const values = [id_user, mot_de_passe];
 
   db.query(sql, values, (err, results) => {
     if (err) {
       res.status(500).json({ error: 'Erreur de serveur' });
     } else {
-      if (results.length > 0) {
-        res.status(200).json({ message: 'Connexion réussie' });
-        console.log(results);
+      if (results[0].nbr > 0) {
+        const jwtSecret = process.env.JWT_SECRET;
+        const token = jwt.sign({ id_user }, jwtSecret, { expiresIn: '1h' });
+        res.status(200).json({ message: 'Connexion réussie', token });
       } else {
         res.status(401).json({ error: 'Identifiants invalides' });
       }
     }
   });
 });
+
+
+// Middleware pour vérifier les tokens JWT
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};
 
 app.get('/app/plusinfo', (req, res) => {
   const { matricule } = req.query;
