@@ -1,4 +1,4 @@
-//backend
+
 // Importez dotenv et chargez les variables d'environnement
 require('dotenv').config({ path: '../../.env' });
 
@@ -32,29 +32,28 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Route de connexion
-// Route de connexion
 app.post('/login', (req, res) => {
   const { id_user, mot_de_passe } = req.body;
 
-  const sql = 'SELECT count(*) as nbr FROM utilisateur WHERE id_user = ? AND mot_de_passe = ?';
+  const sql = 'SELECT role FROM utilisateur WHERE id_user = ? AND mot_de_passe = ?';
   const values = [id_user, mot_de_passe];
 
   db.query(sql, values, (err, results) => {
     if (err) {
-      res.status(500).json({ error: 'Erreur de serveur' });
+      console.error(err);
+      return res.status(500).json({ error: 'Erreur de serveur' });
+    }
+
+    if (results.length > 0) {
+      const jwtSecret = process.env.JWT_SECRET;
+      const role = results[0].role;
+      const token = jwt.sign({ id_user, role }, jwtSecret, { expiresIn: '1h' });
+      return res.status(200).json({ message: 'Connexion réussie', token, role });
     } else {
-      if (results[0].nbr > 0) {
-        const jwtSecret = process.env.JWT_SECRET;
-        const token = jwt.sign({ id_user }, jwtSecret, { expiresIn: '1h' });
-        res.status(200).json({ message: 'Connexion réussie', token });
-      } else {
-        res.status(401).json({ error: 'Identifiants invalides' });
-      }
+      return res.status(401).json({ error: 'Identifiants invalides' });
     }
   });
 });
-
-
 // Middleware pour vérifier les tokens JWT
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];

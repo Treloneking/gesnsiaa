@@ -1,15 +1,16 @@
+//SidebarData.jsx
 import React from 'react';
 import * as AiIcons from "react-icons/ai";
 import * as IoIcons from "react-icons/io";
 import * as FaIcons from "react-icons/fa";
-import { title } from 'process';
 export const SidebarData =[
 
 {
     title: "Register",
     path: "/app/register",
     icon: <AiIcons.AiOutlineUserAdd/>,
-    cName: "nav-text"
+    cName: "nav-text",
+    access:"RH"
 },
 {
     title: "recherche",
@@ -27,12 +28,6 @@ export const SidebarData =[
     title:"contrat",
     path: "/app/contrat",
     icon: <FaIcons.FaFileContract/>,
-    cName: "nav-text"
-},
-{
-    title: "log out",
-    path: "/app/deconnexion",
-    icon: <AiIcons.AiOutlineLogout/>,
     cName: "nav-text"
 },
 ]

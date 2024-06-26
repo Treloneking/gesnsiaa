@@ -18,6 +18,8 @@ const Login = ({ onLogin }) => {
       if (response.status === 200) {
         // Stocker le token JWT dans le localStorage
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('role', response.data.role);
+        
         // Appeler la fonction onLogin pour mettre à jour l'état d'authentification dans App.jsx
         onLogin();
         // Rediriger vers /app en cas de succès

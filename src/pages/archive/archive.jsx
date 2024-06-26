@@ -17,6 +17,7 @@ function Archive() {
   const history = useHistory();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10); // Nombre d'éléments par page par défaut
+  
 
   useEffect(() => {
     const fetchData = async () => {

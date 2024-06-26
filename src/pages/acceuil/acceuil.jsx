@@ -1,3 +1,4 @@
+//acceuil.jsx
 import React from 'react';
 import './acceuil.css';
 import Registerperso from '../enregistrement/registerperso';
