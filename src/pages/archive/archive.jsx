@@ -110,7 +110,7 @@ function Archive() {
     </div>
   </div>
 ) : (
-   <p>Aucun résultat trouvé</p>
+   <p></p>
 )}
 </div>
 </div>

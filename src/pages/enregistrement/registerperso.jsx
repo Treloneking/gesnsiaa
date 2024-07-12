@@ -14,7 +14,6 @@ function Registerperso() {
     Date_naissance: "",
     Nationnalite: "",
     Sexe: "",
-    Compte_Id_compte: "",
   });
   const history = useHistory();
   const [contratType, setContratType] = useState("");
@@ -27,7 +26,7 @@ function Registerperso() {
     const nextStep = () => {
       if (step === 1) {
         // Vérifiez si tous les champs obligatoires de la première étape sont remplis
-        const requiredFields = ["Mat_employe", "Nom_employe", "Prenom_employe", "Telephone", "Date_naissance", "Nationnalite", "Sexe", "Compte_Id_compte"];
+        const requiredFields = ["Mat_employe", "Nom_employe", "Prenom_employe", "Telephone", "Date_naissance", "Nationnalite", "Sexe"];
         const missingFields = requiredFields.filter(field => !formData[field]);
     
         // Si des champs obligatoires sont manquants, affichez une alerte
@@ -179,15 +178,6 @@ className='REGISTRE'            type="text"
             <option value="F">Féminin</option>
           </select>
         </div>
-        <label htmlFor="compte_id">*Compte ID :</label>
-          <input className='REGISTRE'
-            type="text"
-            id="compte_id"
-            name="Compte_Id_compte"
-            onChange={handleChange}
-            value={formData.Compte_Id_compte}
-            required
-          />
         <button type="button" onClick={nextStep}>
               Suivant
             </button>
@@ -303,7 +293,6 @@ className='REGISTRE'       type="submit"
           <p><strong>Date de naissance:</strong> {formData.Date_naissance}</p>
           <p><strong>Nationalité:</strong> {formData.Nationnalite}</p>
           <p><strong>Sexe:</strong> {formData.Sexe}</p>
-          <p><strong>Compte ID:</strong> {formData.Compte_Id_compte}</p>
           <p><strong>Numéro de contrat:</strong> {formData.N_contrat}</p>
           <p><strong>Date de début contrat:</strong> {formData.Date_debut_c}</p>
           <p><strong>Date de fin contrat:</strong> {formData.Date_fin_c}</p>

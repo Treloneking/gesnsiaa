@@ -214,7 +214,7 @@ function SearchPage() {
           </div>
           
         ) : (
-          !loading && <p>Aucun résultat trouvé</p>
+          !loading && <p></p>
         )}
       </div>
     </div>

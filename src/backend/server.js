@@ -1,4 +1,3 @@
-
 // Importez dotenv et chargez les variables d'environnement
 require('dotenv').config({ path: '../../.env' });
 
@@ -11,13 +10,17 @@ if (!jwtSecret) {
   process.exit(1); // Arrête le processus Node en cas d'erreur critique
 }
 
+const multer = require('multer');
+
 const express = require('express');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const app = express();
 const port = 5000;
 const jwt = require('jsonwebtoken');
+const { authenticate } = require('ldap-authentication');
 const cors = require('cors');
+var ActiveDirectory = require('activedirectory');
 
 // Configuration de la connexion à la base de données
 const db = mysql.createConnection({
@@ -27,33 +30,95 @@ const db = mysql.createConnection({
   database: 'gesnsiaa'
 });
 
+
 // Middleware pour parser le corps des requêtes
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 
 // Route de connexion
-app.post('/login', (req, res) => {
-  const { id_user, mot_de_passe } = req.body;
+// Endpoint pour la connexion
+app.post('/login', async (req, res) => {
+  const { Id_user, Mot_de_passe } = req.body;
 
-  const sql = 'SELECT role FROM utilisateur WHERE id_user = ? AND mot_de_passe = ?';
-  const values = [id_user, mot_de_passe];
+  const domain = '@nsiaassurances.com';
+  const username = Id_user.includes(domain) ? Id_user : `${Id_user}${domain}`;
 
-  db.query(sql, values, (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Erreur de serveur' });
+  if (Id_user === 'Gesnsiaa' && Mot_de_passe === 'Administrateurkey@gesnsiaa2024') {
+    const token = jwt.sign({ Id_user, Prenom: 'Administrateur', Nom: 'Gesnsiaa' }, process.env.JWT_SECRET, { expiresIn: '2h' });
+    return res.status(200).json({ message: 'Connexion réussie en tant qu\'administrateur', token, Id_user: 'Gesnsiaa', Prenom: 'Admin', Nom: 'Bibliothequensia', role_id_role: 'admin' });
+  }
+
+  try {
+    const config = {
+      url: 'ldap://10.10.4.4',
+      baseDN: 'dc=nsia,dc=com'
+    };
+
+    const ad = new ActiveDirectory(config);
+    const password = Mot_de_passe;
+
+    const regex = /^([a-zA-Z]+)\.([a-zA-Z]+)@/;
+    const matches = username.match(regex);
+
+    if (!matches || matches.length !== 3) {
+      return res.status(400).json({ message: 'Adresse e-mail non valide' });
     }
 
-    if (results.length > 0) {
-      const jwtSecret = process.env.JWT_SECRET;
-      const role = results[0].role;
-      const token = jwt.sign({ id_user, role }, jwtSecret, { expiresIn: '1h' });
-      return res.status(200).json({ message: 'Connexion réussie', token, role });
-    } else {
-      return res.status(401).json({ error: 'Identifiants invalides' });
-    }
-  });
+    const prenom = matches[1];
+    const nom = matches[2];
+
+    ad.authenticate(username, password, function(err, auth) {
+      if (err) {
+        console.log('ERROR: ' + JSON.stringify(err));
+        return res.status(500).json({ message: 'Erreur d\'authentification LDAP' });
+      }
+      if (auth) {
+        db.query('SELECT * FROM utilisateur WHERE Email = ?', [username], async function(error, results, fields) {
+          if (error) {
+            console.error('Erreur lors de la vérification de l\'utilisateur dans la base de données :', error);
+            return res.status(500).json({ message: 'Erreur interne du serveur' });
+          }
+
+          if (results.length === 0) {
+            try {
+              db.query('INSERT INTO utilisateur (Nom, Prenom, Email) VALUES (?, ?, ?)', [nom, prenom, username], function(err, results, fields) {
+                if (err) {
+                  console.error('Erreur lors de la création de l\'utilisateur dans la base de données :', err);
+                  return res.status(500).json({ message: 'Erreur interne du serveur' });
+                }
+                console.log('Utilisateur créé dans la base de données');
+
+                const newUserId = results.insertId;
+                const token = jwt.sign({ Id_user: newUserId, username, Prenom: prenom, Nom: nom, Role: null }, process.env.JWT_SECRET, { expiresIn: '2h' });
+                return res.status(200).json({ message: 'Connexion réussie', token, Id_user: newUserId, username, Prenom: prenom, Nom: nom, role_id_role: null, direction:Direction });
+              });
+            } catch (error) {
+              console.error('Erreur lors de la création de l\'utilisateur dans la base de données :', error);
+              return res.status(500).json({ message: 'Erreur interne du serveur' });
+            }
+          } else {
+            const existingUser = results[0];
+            const existingUserId = existingUser.id_user;
+            const role_id_role = existingUser.role_id_role;
+            const Direction = existingUser.direction;
+
+            const token = jwt.sign({ Id_user: existingUserId, username, Prenom: prenom, Nom: nom, Role: role_id_role, direction:Direction }, process.env.JWT_SECRET, { expiresIn: '2h' });
+            return res.status(200).json({ message: 'Connexion réussie', token, Id_user: existingUserId, username, Prenom: prenom, Nom: nom, role_id_role, direction:Direction });
+          }
+        });
+      } else {
+        console.log('Authentication failed!');
+        return res.status(401).json({ message: 'Authentification échouée' });
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de l\'authentification LDAP :', error);
+    return res.status(500).json({ message: 'Erreur interne du serveur' });
+  }
 });
+
+
 // Middleware pour vérifier les tokens JWT
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -68,12 +133,13 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+
 app.get('/app/plusinfo', (req, res) => {
   const { matricule } = req.query;
   const sql = `
     SELECT 
       e.Mat_employe, e.Nom_employe, e.Prenom_employe, e.Email, e.Telephone, 
-      e.Date_naissance, e.Nationnalite, e.Sexe, e.Compte_Id_compte, 
+      e.Date_naissance, e.Nationnalite, e.Sexe, e. 
       d.Chef_direction, d.Nom_direction,
       t.Date_debut,t.Date_fin,
       a.Nom_agence,a.Lieu_agence,
@@ -193,6 +259,7 @@ db.query(archiveQuery, [
 
 });
 
+
     db.query(sql, valuess, (err, results) => {
       if (err) {
         console.error('Erreur lors de la mise à jour des données :', err);
@@ -224,6 +291,48 @@ WHERE Mat_employe=?
   });
 });
 
+// Backend code
+app.put('/app/role', (req, res) => {
+  const { Email, role_id_role, direction, employe } = req.body;
+
+  // Check if the employe_Mat_employe is already set for the user
+  db.query('SELECT employe_Mat_employe FROM utilisateur WHERE Email = ?', [Email], (err, results) => {
+    if (err) {
+      console.error('Error fetching user:', err);
+      return res.status(500).json({ error: 'Une erreur s\'est produite lors de la récupération de l\'utilisateur.' });
+    }
+
+    const existingEmploye = results[0].employe_Mat_employe;
+
+    // If employe_Mat_employe is already set, don't update it
+    if (existingEmploye) {
+      db.query(
+        'UPDATE utilisateur SET role_id_role = ?, direction = ? WHERE Email = ?',
+        [role_id_role, direction, Email],
+        (err, result) => {
+          if (err) {
+            console.error('Error updating user role:', err);
+            return res.status(500).json({ error: 'Une erreur s\'est produite lors de la mise à jour du rôle de l\'utilisateur.' });
+          }
+          res.status(200).json({ message: 'Le rôle de l\'utilisateur a été mis à jour avec succès.' });
+        }
+      );
+    } else {
+      // If employe_Mat_employe is not set, update all fields
+      db.query(
+        'UPDATE utilisateur SET role_id_role = ?, direction = ?, employe_Mat_employe = ? WHERE Email = ?',
+        [role_id_role, direction, employe, Email],
+        (err, result) => {
+          if (err) {
+            console.error('Error updating user role:', err);
+            return res.status(500).json({ error: 'Une erreur s\'est produite lors de la mise à jour du rôle de l\'utilisateur.' });
+          }
+          res.status(200).json({ message: 'Le rôle de l\'utilisateur a été mis à jour avec succès.' });
+        }
+      );
+    }
+  });
+});
 
 
 app.get('/app/archive', (req, res) => {
@@ -277,7 +386,6 @@ app.post('/app/register', (req, res) => {
     Date_naissance,
     Nationnalite,
     Sexe,
-    Compte_Id_compte,
     N_contrat,
     Date_debut_c,
     Date_fin_c,
@@ -287,7 +395,6 @@ app.post('/app/register', (req, res) => {
     Direction_code,
     Id_agence
   } = req.body;
-
 
   // Début de la transaction pour insérer dans les deux tables
   db.beginTransaction((err) => {
@@ -305,10 +412,9 @@ app.post('/app/register', (req, res) => {
         Telephone, 
         Date_naissance, 
         Nationnalite, 
-        Sexe, 
-        Compte_Id_compte,
+        Sexe,
         Direction_code
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     db.query(employeQuery, [
       Mat_employe,
@@ -319,7 +425,6 @@ app.post('/app/register', (req, res) => {
       Date_naissance,
       Nationnalite,
       Sexe,
-      Compte_Id_compte,
       Direction_code
     ], (err, results) => {
       if (err) {
@@ -328,8 +433,6 @@ app.post('/app/register', (req, res) => {
         });
       }
 
-      const employeId = results.insertId;
-      
       // Insertion dans la table Contrat
       const contratQuery = `
         INSERT INTO Contrat (
@@ -373,47 +476,206 @@ app.post('/app/register', (req, res) => {
               res.status(500).json({ error: err.message });
             });
           }
-          const archiveQuery = `
-        INSERT INTO archive (
-         Employe_Mat_employe,
-         Contrat_N_contrat,
-         Date_debut_c,
-         Date_fin_c,
-         Type_contrat_Id_type_contrat
-        ) VALUES (?,?,?,?,?)
-      `;
-      db.query(archiveQuery, [
-        Mat_employe,
-        N_contrat,
-        Date_debut_c,
-        Date_fin_c,
-        Type_contrat_Id_type_contrat
-        
-      ], (err, results) => {
-        if (err) {
-          return db.rollback(() => {
-            res.status(500).json({ error: err.message });
-          });
-        }
 
-          
-          // Valider la transaction
-          db.commit((err) => {
+          // Insertion dans la table archive
+          const archiveQuery = `
+            INSERT INTO archive (
+              Employe_Mat_employe,
+              Contrat_N_contrat,
+              Date_debut_c,
+              Date_fin_c,
+              Type_contrat_Id_type_contrat
+            ) VALUES (?, ?, ?, ?, ?)
+          `;
+          db.query(archiveQuery, [
+            Mat_employe,
+            N_contrat,
+            Date_debut_c,
+            Date_fin_c,
+            Type_contrat_Id_type_contrat
+          ], (err, results) => {
             if (err) {
               return db.rollback(() => {
                 res.status(500).json({ error: err.message });
               });
             }
-            res.status(200).json({ msg: 'Utilisateur et contrat ajoutés avec succès' });
+
+            // Insertion dans la table newemploye
+            const NewEmployeQuery = `
+              INSERT INTO newemploye (
+                Employe_Mat_employe,
+                Contrat_N_contrat,
+                Type_contrat_Id_type_contrat,
+                direction
+              ) VALUES (?, ?, ?, ?)
+            `;
+            db.query(NewEmployeQuery, [
+              Mat_employe,
+              N_contrat,
+              Type_contrat_Id_type_contrat,
+              Direction_code
+            ], (err, results) => {
+              if (err) {
+                console.error(err);
+                return db.rollback(() => {
+                  res.status(500).json({ error: err.message });
+                });
+              }
+
+              // Valider la transaction
+              db.commit((err) => {
+                if (err) {
+                  return db.rollback(() => {
+                    res.status(500).json({ error: err.message });
+                  });
+                }
+                res.status(200).json({ msg: 'Utilisateur et contrat ajoutés avec succès' });
+              });
+            });
           });
         });
       });
-    });
     });
   });
 });
 
 
+
+
+app.post('/app/import', (req, res) => {
+  const data = req.body;
+
+  // Mapping des champs du fichier Excel vers les champs de la base de données
+  data.forEach((row) => {
+    const mappedRow = {
+      Mat_employe: row.Matricule,
+      Nom_employe: row.Nom,
+      Prenom_employe: row.Prénom,
+       Date_naissance:row.Date,
+       Sexe:row.Sexe,
+      Direction_code:row.Direction,
+     Telephone:row.Telephone, 
+         Email:row.Email,
+      Nationnalite:row.Nationnalite,
+   
+      
+
+
+      // Ajoutez tous les champs nécessaires ici
+    };
+
+    const sql = 'INSERT INTO Employe SET ?';
+    db.query(sql, mappedRow, (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Erreur lors de l\'importation des données');
+      }
+    });
+  });
+  
+
+  res.send('Données importées avec succès');
+});
+
+app.post('/api/import', (req, res) => {
+  const data = req.body;
+
+  data.forEach((row) => {
+    const mappedRow = {
+      Matricule: row.Matricule,
+      Nom: row.Nom,
+      Prenom: row.Prénom,
+      Date: row.Date,
+      Sexe: row.Sexe,
+      Direction: row.Direction,
+      Contrat: row.Contrat,
+      Telephone: row.Téléphone,
+      Email: row.Email,
+      Nationalite: row.Nationalité,
+      Agence: row.Agence,
+      Statut: row.Statut,
+    };
+
+    const sql = 'INSERT INTO employes SET ?';
+    db.query(sql, mappedRow, (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Erreur lors de l\'importation des données');
+      }
+    });
+  });
+
+  res.status(200).json({ msg: 'importé avec succès' });
+});
+
+app.post('/app/conges', (req, res) => {
+  const { id_utilisateur, date_debut_con, date_fin_con, motif } = req.body;
+
+  if (!id_utilisateur || !date_debut_con || !date_fin_con || !motif) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  const query = 'INSERT INTO Congés (id_utilisateur, date_debut_con, date_fin_con, motif) VALUES (?, ?, ?, ?)';
+  db.query(query, [id_utilisateur, date_debut_con, date_fin_con, motif], (err, result) => {
+    if (err) {
+      console.error('Error submitting leave request:', err);
+      return res.status(500).json({ message: 'Error submitting leave request' });
+    }
+    res.status(200).json({ message: 'Leave request submitted successfully', result });
+  });
+});
+
+
+app.get('/app/newemploye', (req, res) => {
+  const query = `
+    SELECT id_new_employe, Employe_Mat_employe, Contrat_N_contrat, Type_contrat_Id_type_contrat, direction
+    FROM newemploye
+  `;
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching new employees: ' + err);
+      return res.status(500).json({ error: 'Failed to fetch new employees' });
+    }
+    res.json(results);
+  });
+});
+
+app.get('/app/comptes', (req, res) => {
+  const query = `
+    SELECT *
+    FROM compte
+  `;
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching new employees: ' + err);
+      return res.status(500).json({ error: 'Failed to fetch new employees' });
+    }
+    res.json(results);
+  });
+});
+
+
+// Endpoint pour autoriser les comptes sélectionnés pour un employé spécifique
+app.post('/app/authorizeComptes', async (req, res) => {
+  const { matricule, comptes } = req.body;
+
+  if (!matricule || !comptes || !Array.isArray(comptes)) {
+    return res.status(400).json({ message: 'Entrée invalide' });
+  }
+
+  try {
+    const queries = comptes.map((compteId) => {
+      return db.query('INSERT INTO employe_compte (Employe_Mat_employe, Compte_Id_compte) VALUES (?, ?)', [matricule, compteId]);
+    });
+
+    await Promise.all(queries);
+
+    res.status(200).json({ message: 'Comptes autorisés avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de l\'autorisation des comptes :', error);
+    res.status(500).json({ message: 'Erreur lors de l\'autorisation des comptes' });
+  }
+});
 
 
 

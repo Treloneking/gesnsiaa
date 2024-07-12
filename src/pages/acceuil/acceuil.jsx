@@ -11,6 +11,11 @@ import Contrat from '../contrat/contrat';
 import Archive from '../archive/archive';
 import Archiveplus from '../archive/archiveplus';
 import Notif from '../../component/notif/notif';
+import ImportExcel from '../import/import';
+import UpdateUserRole from '../roleupdate/roleupdate';
+import DemandeConges from '../congés/demandecongés';
+import Vision from '../workflow/vision/vision';
+import CompteCheckboxes from '../workflow/createcomptesak/createrequest';
 function Acceuil() {
     return (
         
@@ -28,6 +33,11 @@ function Acceuil() {
     <Route path="/app/archive" component={Archive}/>
     <Route path="/app/archiveplus" component={Archiveplus} />
     <Route path="/app/notification" component={Notif}/>
+    <Route path="/app/import" component={ImportExcel}/>
+    <Route path="/app/role" component={UpdateUserRole}/>
+    <Route path="/app/conges" component={DemandeConges}/>
+    <Route path="/app/newemploye"component={Vision}/>
+    <Route path="/app/authorizeComptes"component={CompteCheckboxes}/>
    </Switch>
    </Router>
     </div>
