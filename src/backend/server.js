@@ -44,9 +44,16 @@ app.post('/login', async (req, res) => {
   const domain = '@nsiaassurances.com';
   const username = Id_user.includes(domain) ? Id_user : `${Id_user}${domain}`;
 
+  // Condition pour l'utilisateur administrateur général
   if (Id_user === 'Gesnsiaa' && Mot_de_passe === 'Administrateurkey@gesnsiaa2024') {
     const token = jwt.sign({ Id_user, Prenom: 'Administrateur', Nom: 'Gesnsiaa' }, process.env.JWT_SECRET, { expiresIn: '2h' });
     return res.status(200).json({ message: 'Connexion réussie en tant qu\'administrateur', token, Id_user: 'Gesnsiaa', Prenom: 'Admin', Nom: 'Bibliothequensia', role_id_role: 'admin' });
+  }
+
+  // Condition pour l'utilisateur DSIadmin
+  if (Id_user === 'DSIadmin' && Mot_de_passe === 'Admin@keyDsi') {
+    const token = jwt.sign({ Id_user, Prenom: 'Admin', Nom: 'DSI', role: 'AdminDsi' }, process.env.JWT_SECRET, { expiresIn: '2h' });
+    return res.status(200).json({ message: 'Connexion réussie en tant qu\'admin DSI', token, Id_user: 'DSIadmin', Prenom: 'Admin', Nom: 'DSI', role_id_role: 'AdminDsi' });
   }
 
   try {
@@ -91,7 +98,7 @@ app.post('/login', async (req, res) => {
 
                 const newUserId = results.insertId;
                 const token = jwt.sign({ Id_user: newUserId, username, Prenom: prenom, Nom: nom, Role: null }, process.env.JWT_SECRET, { expiresIn: '2h' });
-                return res.status(200).json({ message: 'Connexion réussie', token, Id_user: newUserId, username, Prenom: prenom, Nom: nom, role_id_role: null, direction:Direction });
+                return res.status(200).json({ message: 'Connexion réussie', token, Id_user: newUserId, username, Prenom: prenom, Nom: nom, role_id_role: null, direction: null });
               });
             } catch (error) {
               console.error('Erreur lors de la création de l\'utilisateur dans la base de données :', error);
@@ -103,8 +110,8 @@ app.post('/login', async (req, res) => {
             const role_id_role = existingUser.role_id_role;
             const Direction = existingUser.direction;
 
-            const token = jwt.sign({ Id_user: existingUserId, username, Prenom: prenom, Nom: nom, Role: role_id_role, direction:Direction }, process.env.JWT_SECRET, { expiresIn: '2h' });
-            return res.status(200).json({ message: 'Connexion réussie', token, Id_user: existingUserId, username, Prenom: prenom, Nom: nom, role_id_role, direction:Direction });
+            const token = jwt.sign({ Id_user: existingUserId, username, Prenom: prenom, Nom: nom, Role: role_id_role, direction: Direction }, process.env.JWT_SECRET, { expiresIn: '2h' });
+            return res.status(200).json({ message: 'Connexion réussie', token, Id_user: existingUserId, username, Prenom: prenom, Nom: nom, role_id_role, direction: Direction });
           }
         });
       } else {
@@ -117,6 +124,7 @@ app.post('/login', async (req, res) => {
     return res.status(500).json({ message: 'Erreur interne du serveur' });
   }
 });
+
 
 
 // Middleware pour vérifier les tokens JWT
@@ -139,18 +147,18 @@ app.get('/app/plusinfo', (req, res) => {
   const sql = `
     SELECT 
       e.Mat_employe, e.Nom_employe, e.Prenom_employe, e.Email, e.Telephone, 
-      e.Date_naissance, e.Nationnalite, e.Sexe, e. 
+      e.Date_naissance, e.Nationnalite, e.Sexe, 
       d.Chef_direction, d.Nom_direction,
-      t.Date_debut,t.Date_fin,
-      a.Nom_agence,a.Lieu_agence,
-      c.N_contrat,c.Date_debut_c,c.Date_fin_c,
-      c.Type_contrat_Id_type_contrat
+      t.Date_debut, t.Date_fin,
+      a.Nom_agence, a.Lieu_agence,
+      c.N_contrat, c.Date_debut_c, c.Date_fin_c, 
+      tc.Id_type_contrat
     FROM Employe e
     LEFT JOIN Travail t ON e.Mat_employe = t.Employe_Mat_employe
     LEFT JOIN Agence a ON t.Agence_Id_agence = a.Id_agence
-    LEFT JOIN direction d ON e.Direction_code = d.Code_direction
+    LEFT JOIN Direction d ON e.Direction_code = d.Code_direction
     LEFT JOIN Contrat c ON e.Mat_employe = c.Employe_Mat_employe
-    LEFT JOIN  Type_contrat tc ON tc.Id_type_contrat = c.Type_contrat_Id_type_contrat
+    LEFT JOIN Type_contrat tc ON tc.Id_type_contrat = c.Type_contrat_Id_type_contrat
     WHERE e.Mat_employe LIKE ?;
   `;
   const query = `%${matricule}%`; // Pour permettre la recherche partielle
@@ -164,6 +172,8 @@ app.get('/app/plusinfo', (req, res) => {
     }
   });
 });
+
+
 
 
 app.get('/app/recherche', (req, res) => {
@@ -540,73 +550,199 @@ app.post('/app/register', (req, res) => {
 });
 
 
-
-
 app.post('/app/import', (req, res) => {
   const data = req.body;
 
-  // Mapping des champs du fichier Excel vers les champs de la base de données
   data.forEach((row) => {
-    const mappedRow = {
-      Mat_employe: row.Matricule,
-      Nom_employe: row.Nom,
-      Prenom_employe: row.Prénom,
-       Date_naissance:row.Date,
-       Sexe:row.Sexe,
-      Direction_code:row.Direction,
-     Telephone:row.Telephone, 
-         Email:row.Email,
-      Nationnalite:row.Nationnalite,
-   
-      
+    const {
+      Matricule,
+      Nom,
+      Prénom,
+      Date,
+      Sexe,
+      Direction,
+      Telephone,
+      Email,
+      Nationnalite,
+      N_contrat,
+      Date_debut_c,
+      Date_fin_c,
+      Type_contrat_Id_type_contrat,
+      Agence_Id_agence,
+      Date_debut,
+      Date_fin
+    } = row;
 
-
-      // Ajoutez tous les champs nécessaires ici
-    };
-
-    const sql = 'INSERT INTO Employe SET ?';
-    db.query(sql, mappedRow, (err, result) => {
+    // Début de la transaction pour insérer dans les différentes tables
+    db.beginTransaction((err) => {
       if (err) {
-        console.error(err);
-        return res.status(500).send('Erreur lors de l\'importation des données');
+        return res.status(500).json({ error: err.message });
       }
+
+      // Insertion dans la table Employe
+      const employeQuery = `
+        INSERT INTO Employe (
+          Mat_employe, 
+          Nom_employe, 
+          Prenom_employe, 
+          Email, 
+          Telephone, 
+          Date_naissance, 
+          Nationnalite, 
+          Sexe,
+          Direction_code
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      db.query(employeQuery, [
+        Matricule,
+        Nom,
+        Prénom,
+        Email,
+        Telephone,
+        Date,
+        Nationnalite,
+        Sexe,
+        Direction
+      ], (err, results) => {
+        if (err) {
+          return db.rollback(() => {
+            res.status(500).json({ error: err.message });
+          });
+        }
+
+        // Insertion dans la table Contrat
+        const contratQuery = `
+          INSERT INTO Contrat (
+            N_contrat,
+            Date_debut_c,
+            Date_fin_c,
+            Type_contrat_Id_type_contrat,
+            Employe_Mat_employe
+          ) VALUES (?, ?, ?, ?, ?)
+        `;
+        db.query(contratQuery, [
+          N_contrat,
+          Date_debut_c,
+          Date_fin_c,
+          Type_contrat_Id_type_contrat,
+          Matricule
+        ], (err, results) => {
+          if (err) {
+            return db.rollback(() => {
+              res.status(500).json({ error: err.message });
+            });
+          }
+
+          // Insertion dans la table Travail
+          const travailQuery = `
+            INSERT INTO Travail (
+              Employe_Mat_employe,
+              Agence_Id_agence,
+              Date_debut,
+              Date_fin
+            ) VALUES (?, ?, ?, ?)
+          `;
+          db.query(travailQuery, [
+            Matricule,
+            Agence_Id_agence,
+            Date_debut,
+            Date_fin
+          ], (err, results) => {
+            if (err) {
+              return db.rollback(() => {
+                res.status(500).json({ error: err.message });
+              });
+            }
+
+            // Insertion dans la table archive
+            const archiveQuery = `
+              INSERT INTO archive (
+                Employe_Mat_employe,
+                Contrat_N_contrat,
+                Date_debut_c,
+                Date_fin_c,
+                Type_contrat_Id_type_contrat
+              ) VALUES (?, ?, ?, ?, ?)
+            `;
+            db.query(archiveQuery, [
+              Matricule,
+              N_contrat,
+              Date_debut_c,
+              Date_fin_c,
+              Type_contrat_Id_type_contrat
+            ], (err, results) => {
+              if (err) {
+                return db.rollback(() => {
+                  res.status(500).json({ error: err.message });
+                });
+              }
+
+              // Insertion dans la table newemploye
+              const NewEmployeQuery = `
+                INSERT INTO newemploye (
+                  Employe_Mat_employe,
+                  Contrat_N_contrat,
+                  Type_contrat_Id_type_contrat,
+                  direction
+                ) VALUES (?, ?, ?, ?)
+              `;
+              db.query(NewEmployeQuery, [
+                Matricule,
+                N_contrat,
+                Type_contrat_Id_type_contrat,
+                Direction
+              ], (err, results) => {
+                if (err) {
+                  console.error(err);
+                  return db.rollback(() => {
+                    res.status(500).json({ error: err.message });
+                  });
+                }
+
+                // Valider la transaction
+                db.commit((err) => {
+                  if (err) {
+                    return db.rollback(() => {
+                      res.status(500).json({ error: err.message });
+                    });
+                  }
+                  // Confirmation pour chaque ligne importée
+                  console.log(`Employé ${Matricule} importé avec succès`);
+                });
+              });
+            });
+          });
+        });
+      });
     });
   });
-  
 
   res.send('Données importées avec succès');
 });
 
-app.post('/api/import', (req, res) => {
-  const data = req.body;
 
-  data.forEach((row) => {
-    const mappedRow = {
-      Matricule: row.Matricule,
-      Nom: row.Nom,
-      Prenom: row.Prénom,
-      Date: row.Date,
-      Sexe: row.Sexe,
-      Direction: row.Direction,
-      Contrat: row.Contrat,
-      Telephone: row.Téléphone,
-      Email: row.Email,
-      Nationalite: row.Nationalité,
-      Agence: row.Agence,
-      Statut: row.Statut,
-    };
 
-    const sql = 'INSERT INTO employes SET ?';
-    db.query(sql, mappedRow, (err, result) => {
+app.get('/app/get-latest-stage-matricule', async (req, res) => {
+  try {
+    const query = 'SELECT MAX(CAST(SUBSTRING(Mat_employe, 4) AS UNSIGNED)) as latestMatricule FROM employe WHERE Mat_employe LIKE "STG%%"';
+    db.query(query, (err, result) => {
       if (err) {
-        console.error(err);
-        return res.status(500).send('Erreur lors de l\'importation des données');
+        console.error('Error fetching latest STG matricule:', err);
+        res.status(500).json({ error: 'An error occurred while fetching the latest STG matricule.' });
+        return;
       }
+      
+      const latestMatricule = result[0]?.latestMatricule || 0;
+      res.json({ latestMatricule });
     });
-  });
-
-  res.status(200).json({ msg: 'importé avec succès' });
+  } catch (err) {
+    console.error('Error fetching latest STAG matricule:', err);
+    res.status(500).json({ error: 'An error occurred while fetching the latest STAG matricule.' });
+  }
 });
+
+
+
 
 app.post('/app/conges', (req, res) => {
   const { id_utilisateur, date_debut_con, date_fin_con, motif } = req.body;
@@ -628,12 +764,13 @@ app.post('/app/conges', (req, res) => {
 
 app.get('/app/newemploye', (req, res) => {
   const query = `
-    SELECT id_new_employe, Employe_Mat_employe, Contrat_N_contrat, Type_contrat_Id_type_contrat, direction
-    FROM newemploye
+    SELECT *
+    FROM newemploye np
+    LEFT JOIN employe e ON np.Employe_Mat_employe = e.Mat_employe
   `;
   db.query(query, (err, results) => {
     if (err) {
-      console.error('Error fetching new employees: ' + err);
+      console.error(' err');
       return res.status(500).json({ error: 'Failed to fetch new employees' });
     }
     res.json(results);
@@ -664,18 +801,85 @@ app.post('/app/authorizeComptes', async (req, res) => {
   }
 
   try {
-    const queries = comptes.map((compteId) => {
+    // Begin transaction
+    await db.query('START TRANSACTION');
+
+    // Insert into employe_compte
+    const insertQueries = comptes.map((compteId) => {
       return db.query('INSERT INTO employe_compte (Employe_Mat_employe, Compte_Id_compte) VALUES (?, ?)', [matricule, compteId]);
     });
+    await Promise.all(insertQueries);
 
-    await Promise.all(queries);
+    // Delete from newemploye
+    await db.query('DELETE FROM newemploye WHERE Employe_Mat_employe = ?', [matricule]);
 
-    res.status(200).json({ message: 'Comptes autorisés avec succès' });
+    // Commit transaction
+    await db.query('COMMIT');
+
+    res.status(200).json({ message: 'Comptes autorisés avec succès et employé supprimé de la table newemploye' });
   } catch (error) {
-    console.error('Erreur lors de l\'autorisation des comptes :', error);
-    res.status(500).json({ message: 'Erreur lors de l\'autorisation des comptes' });
+    // Rollback transaction on error
+    await db.query('ROLLBACK');
+    console.error('Erreur lors de l\'autorisation des comptes et de la suppression de l\'employé :', error);
+    res.status(500).json({ message: 'Erreur lors de l\'autorisation des comptes et de la suppression de l\'employé' });
   }
 });
+
+// Endpoint to get the number of employees in a specific direction
+app.get('/app/dashboarddirection', (req, res) => {
+  const direction = req.query.direction;
+
+  if (!direction) {
+    return res.status(400).json({ message: 'Direction is required' });
+  }
+
+  const query = 'SELECT COUNT(*) AS count FROM employe WHERE Direction_code = ?';
+  db.query(query, [direction], (err, result) => {
+    if (err) {
+      console.error('Error fetching employee count:', err);
+      return res.status(500).json({ message: 'Error fetching employee count' });
+    }
+    res.status(200).json({ count: result[0].count });
+  });
+});
+
+app.get('/app/demandecreation', async (req, res) => {
+  try {
+    const comptes = await new Promise((resolve, reject) => {
+      db.query(`
+        SELECT ec.Employe_Mat_employe AS matricule, GROUP_CONCAT(c.Application SEPARATOR ', ') AS applications
+        FROM employe_compte ec
+        LEFT JOIN compte c ON ec.Compte_Id_compte = c.Id_compte
+        GROUP BY ec.Employe_Mat_employe
+      `, (error, results) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(results);
+      });
+    });
+
+    res.status(200).json(comptes);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des comptes des employés :', error);
+    res.status(500).json({ message: 'Erreur lors de la récupération des comptes des employés' });
+  }
+});
+
+app.post('/app/validatecreation', (req, res) => {
+  const { matricule } = req.body;
+  const sql = 'DELETE FROM employe_compte WHERE Employe_Mat_employe = ?'; // Adapté à votre structure de base de données
+  db.query(sql, [matricule], (err, result) => {
+    if (err) {
+      console.error('Error validating creation:', err);
+      res.status(500).json({ error: 'Une erreur s\'est produite lors de la validation de la création.' });
+      return;
+    }
+    console.log(`Compte pour matricule ${matricule} validé avec succès.`);
+    res.json({ message: `Compte pour matricule ${matricule} validé avec succès.` });
+  });
+});
+
 
 
 

@@ -36,8 +36,15 @@ function UpdateEmployee() {
     setFormData({ ...formData, [name]: value });
     if (name === "Type_contrat_Id_type_contrat") {
       setContratType(value);
+    } if (name === "Type_contrat_Id_type_contrat" && value === "CDI") {
+      // Si CDI est sélectionné, mettre à jour Date_fin_c avec une valeur par défaut
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        Date_fin_c: "3090-12-31", // Valeur par défaut pour CDI
+      }));
     }
   };
+  
   const handlereturn = (matricule) => {
     history.push(`/app/plusinfo?matricule=${matricule}`);
   };
@@ -64,7 +71,7 @@ function UpdateEmployee() {
             name="Mat_employe" 
             value={formData.Mat_employe || ''} 
             onChange={handleChange} 
-            readOnly 
+            disabled
           />
         </div >
         <div className="form-group">
@@ -102,19 +109,24 @@ function UpdateEmployee() {
         <option value="STG-ECOLE">STAGE-ECOLE</option>
       </select>
     </div> 
-    <div class="form-group">
-    <label for="" className='textmod'>Agence :</label>
-   <select
-       id="Id_agence"
-        name="Id_agence"
-        onChange={handleChange}
-        value={formData.Id_agence } required>
-        <option disabled default selected>Selection de l'agence</option>
-        <option value="BOUAK">BOUKE</option>
-        <option value="ABIDJ">ABIDJAN</option>
-        <option value="YAMOU">YAMOUSSOKRO</option>
-      </select>
-    </div>
+    <div className="form-group">
+                <label htmlFor="agence">*Agence :</label>
+                <select
+                  id="agence"
+                  name="Id_agence"
+                  onChange={handleChange}
+                  value={formData.Id_agence}
+                >
+                  <option value="" disabled selected>--------</option>
+                  <option value="BOUAKE">AGENCE BOUAKE</option> 
+                  <option value="DALOA">AGENCE DALOA</option>
+                  <option value="KORHOGO">AGENCE KORHOGO</option>
+                  <option value="PLATEAU">AGENCE PLATEAU</option>
+                  <option value="SAN-PEDRO">AGENCE SAN-PEDRO</option>
+                  <option value="VALLON">AGENCE VALLON</option>
+                  <option value="YAMOUSSOKRO">AGENCE YAMOUSSOKRO</option>
+                </select>
+              </div>
     <button className="form-gro" onClick={() => handlereturn(formData.Mat_employe)}>Retour</button>
     <button className='form-mod' type="submit">Enregistrer les modifications</button>
       </form>

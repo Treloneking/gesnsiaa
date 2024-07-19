@@ -22,13 +22,18 @@ const Login = ({ onLogin }) => {
         localStorage.setItem('Id_user', response.data.Id_user);
         localStorage.setItem('roledb', response.data.role_id_role);
         localStorage.setItem('Direction', response.data.direction);
-
-        const isAdmin = response.data.Id_user === 'Gesnsiaa';
-        localStorage.setItem('role', isAdmin ? 'admin' : 'user');
+        const jnone = localStorage.getItem('roledb', response.data.role_id_role);
 
         onLogin();
-
-        history.push('/app');
+        if(jnone==='Chef'){
+          history.push('/app/newemploye');
+        };
+        if(jnone==='admin'){
+          history.push('/app/recherche');
+        };
+        if(jnone==='AdminDsi'){
+          history.push('/app/role');
+        };
       }
     } catch (err) {
       if (err.response && err.response.status === 401) {

@@ -56,28 +56,43 @@ const UpdateUserRole = () => {
            required
           />
         </div>
-        <div>
-          <label>Role:</label>
-          <input
-            className="form-group"
-            type="text"
-            name="role_id_role"
-            value={role_id_role}
-            onChange={handleChange}
-           
-          />
-        </div>
-        <div>
-          <label>Direction:</label>
-          <input
-            className="form-group"
-            type="text"
-            name="direction"
-            value={direction}
-            onChange={handleChange}
-            
-          />
-        </div>
+        
+        <div className="form-group">
+                <label htmlFor="direction">Role :</label>
+                <select
+                  className="form-group"
+                  type="text"
+                  name="role_id_role"
+                  value={role_id_role}
+                  onChange={handleChange}
+                >
+                  <option value="" disabled selected>--------</option>
+                  <option value="Chef">Chef Direction</option>
+                  <option value="admin">Administrateur RH</option>
+                </select>
+              </div>
+        
+        <div className="form-group">
+                <label htmlFor="direction">*Direction :</label>
+                <select
+                  id="direction"
+                  name="Direction_code"
+                  onChange={handleChange}
+                  value={direction}
+                >
+                  <option value="" disabled selected>--------</option>
+                  <option value="DG">DIRECTION GENERALE</option>
+                  <option value="DSI">DIRECTION SYSTEME D'INFORMATION</option>
+                  <option value="DARH">DIRECTION D'ADMINISTRATION ET RESSOURCE HUMAINE</option>
+                  <option value="DDC">DIRECTION DU DEVELOPPEMENT COMMERCIAL</option>
+                  <option value="DJ">DEPARTEMENT JURIDIQUE</option>
+                  <option value="DCIQ">DEPARTEMENT CONTROLE INTERNE ET QUALITE</option>
+                  <option value="DFC">DIRECTION FINANCE COMPTABILITE</option>
+                  <option value="DEX">DIRECTION EXPERIENCE CLIENT</option>
+                  <option value="DOP">DIRECTION DES OPERATIONS</option>
+                  <option value="DM">DEPARTEMENT MARKETING</option>
+                </select>
+              </div>
         <div>
           <label>Matricule associé:</label>
           <input

@@ -1,0 +1,8 @@
+.fondleg{
+    background-image: url("./../../assets/images/fond.jpg");
+         background-size: cover; 
+        background-repeat: no-repeat;
+        width: 30000px; 
+        max-height: auto;
+  
+}

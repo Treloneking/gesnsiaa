@@ -16,6 +16,8 @@ import UpdateUserRole from '../roleupdate/roleupdate';
 import DemandeConges from '../congés/demandecongés';
 import Vision from '../workflow/vision/vision';
 import CompteCheckboxes from '../workflow/createcomptesak/createrequest';
+import Dashboard from '../workflow/dashbaord/dashboard';
+import CompteDetails from '../workflow/compte a crée/compteacrée';
 function Acceuil() {
     return (
         
@@ -38,6 +40,8 @@ function Acceuil() {
     <Route path="/app/conges" component={DemandeConges}/>
     <Route path="/app/newemploye"component={Vision}/>
     <Route path="/app/authorizeComptes"component={CompteCheckboxes}/>
+    <Route path="/app/dashboarddirection" component={Dashboard}/>
+    <Route path="/app/demandecreation" component={CompteDetails}/>
    </Switch>
    </Router>
     </div>

@@ -38,11 +38,6 @@ function Vision() {
   const totalPages = Math.ceil(newEmployes.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, newEmployes.length);
-
-  const handleMoreInfo = (matricule) => {
-    history.push(`/app/newemployeplus?matricule=${matricule}`);
-  };
-
   const handleNext = (matricule) => {
     history.push(`/app/authorizeComptes?matricule=${matricule}`);
   };
@@ -67,6 +62,7 @@ function Vision() {
               <thead>
                 <tr>
                   <th>ID</th>
+                  <th>Nom</th>
                   <th>Matricule Employé</th>
                   <th>Contrat</th>
                   <th>Type de Contrat</th>
@@ -78,6 +74,7 @@ function Vision() {
                 {newEmployes.slice(startIndex, endIndex).map((newEmploye, index) => (
                   <tr key={index}>
                     <td>{newEmploye.id_new_employe}</td>
+                    <td>{newEmploye.Nom_employe}</td>
                     <td>{newEmploye.Employe_Mat_employe}</td>
                     <td>{newEmploye.Contrat_N_contrat}</td>
                     <td>{newEmploye.Type_contrat_Id_type_contrat}</td>

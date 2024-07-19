@@ -2,11 +2,26 @@ import React from 'react';
 import * as AiIcons from "react-icons/ai";
 import * as IoIcons from "react-icons/io";
 import * as FaIcons from "react-icons/fa";
+import { HiOutlineClipboardCopy } from "react-icons/hi";
 import { Link } from 'react-router-dom';
 
 const SidebarData = () => {
   const roler=localStorage.getItem('roledb');
     const sidebarItems = [
+      {
+            title: "Register",
+            path: "/app/register",
+            icon: <AiIcons.AiOutlineUserAdd />,
+            cName: "nav-text",
+            hidden: roler!=='admin',
+        },
+        {
+          title: "Dashboard",
+          path: "/app/dashboarddirection",
+          icon: <AiIcons.AiFillDashboard />,
+          cName: "nav-text",
+          hidden: roler!=='Chef'
+        },
       {
         title: 'Nouvel employé',
         path: '/app/newemploye',
@@ -14,13 +29,7 @@ const SidebarData = () => {
         cName:"nav-text",
         hidden: roler!=='Chef'
       },
-        {
-            title: "Register",
-            path: "/app/register",
-            icon: <AiIcons.AiOutlineUserAdd />,
-            cName: "nav-text",
-            hidden: roler!=='admin',
-        },
+        
         {
             title: "Recherche",
             path: "/app/recherche",
@@ -50,11 +59,18 @@ const SidebarData = () => {
             hidden: roler!=='admin',
         },
         {
+          title: "Demande Creation",
+          path: "/app/demandecreation",
+          icon:<HiOutlineClipboardCopy />,
+          cName: "nav-text",
+          hidden: roler!=="AdminDsi"
+        },
+        {
           title: "Role",
           path: "/app/role",
           icon: <FaIcons.FaUserTie />,
           cName: "nav-text",
-          hidden: roler !=='admin'
+          hidden: roler !=='AdminDsi'
         },
         {
           title: "Demande absence",

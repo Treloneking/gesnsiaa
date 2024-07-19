@@ -1,0 +1,104 @@
+.apk h1 {
+    color: white;
+    font-weight: bold;
+    background-color: goldenrod;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  
+  .apk {
+    width: 80%;
+    max-width: 1000px;
+    height: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    border-radius: 25px;
+    text-align: center;
+    margin: 20px auto;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    color: white;
+  }
+  
+  .apk label {
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .apk .checkbox-container {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px 0;
+  }
+  
+  .back-auth {
+    background-image: url("./../../../assets/images/fond.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    min-height: 100vh; /* Full viewport height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .signature-container{
+    background-color: beige;
+    color: black;
+  }
+  
+  .submit-button {
+    background-color: goldenrod;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+    margin: 20px;
+  }
+  
+  .submit-button:hover {
+    background-color: darkgoldenrod;
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .apk {
+      width: 100%;
+      padding: 10px;
+    }
+  
+    .apk label {
+      font-size: 1.2rem;
+    }
+  
+    .submit-button {
+      font-size: 1rem;
+      padding: 8px 16px;
+      margin: 20px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .apk {
+      padding: 5px;
+    }
+  
+    .apk label {
+      font-size: 1rem;
+    }
+  
+    .submit-button {
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      margin: 20px;
+    }
+  }
+  

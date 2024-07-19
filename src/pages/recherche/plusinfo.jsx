@@ -18,6 +18,7 @@ function PlusInfo() {
   const queryParams = new URLSearchParams(location.search);
   const matricule = queryParams.get('matricule');
   const [differenceJours, setDifferenceJours] = useState(0);
+  const [contratType, setContratType] = useState("");
   
   useEffect(() => {
     const fetchEmployee = async () => {
@@ -52,6 +53,7 @@ function PlusInfo() {
     history.push(`/app/modification?matricule=${matricule}`);
   };
 
+
   return (
     <div className='modifbackin'>
     <div className='search-page'>
@@ -68,11 +70,11 @@ function PlusInfo() {
         <p><strong>Nationalité:</strong> {formData.Nationnalite}</p>
         <p><strong>Sexe:</strong> {formData.Sexe}</p>
         <p><strong>Numero contrat:</strong> {formData.N_contrat}</p>
-        <p><strong>Type de contrat:</strong> {formData.Type_contrat_Id_type_contrat}</p>
+        <p><strong>Type de contrat:</strong> {formData.Id_type_contrat}</p>
         <p><strong>Date debut contrat:</strong> {formatDate(formData.Date_debut_c)}</p>
-        <p><strong>Date fin contrat:</strong> {formatDate(formData.Date_fin_c)}</p>
+        { contratType === "CDD" || contratType === "STG-ECOLE" ? (
+        <p><strong>Date fin contrat:</strong> {formatDate(formData.Date_fin_c)}</p>): null}
         <p><strong>Temps restant contrat:</strong>{differenceJours}</p>
-        <p><strong>Compte ID:</strong> {formData.Compte_Id_compte}</p>
         <p><strong>Nom direction:</strong> {formData.Nom_direction}</p>
         <p><strong>Responsable direction:</strong> {formData.Chef_direction}</p>
         <p><strong>Date debut a l'agence:</strong> {formatDate(formData.Date_debut)}</p>
