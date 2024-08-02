@@ -29,7 +29,7 @@ const CompteCheckboxes = ({ location }) => {
         : [...prevSelected, id]
     );
   };
-  const handlereturn = (matricule) => {
+  const handlereturn = () => {
     history.push(`/app/newemploye`);
   };
 
@@ -41,8 +41,10 @@ const CompteCheckboxes = ({ location }) => {
         comptes: selectedComptes,
       });
       alert('Comptes autorisés avec succès');
+      history.push(`/app/newemploye`)
       setSelectedComptes([]);
-    } catch (error) {
+    } catch (error) { 
+      alert('erreur');
       console.error('Error authorizing comptes:', error);
     }
   };

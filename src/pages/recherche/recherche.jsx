@@ -35,7 +35,7 @@ function SearchPage() {
   
     try {
       const response = await axios.get('http://localhost:5000/app/recherche', {
-        params: { matricule, nom, direction, agence, statut,contrat }, // Inclure le statut dans les paramètres de requête
+        params: { matricule, nom, direction, agence, statut, contrat }, // Inclure le statut dans les paramètres de requête
       });
      
       if (response.data.length === 0) {
@@ -43,11 +43,9 @@ function SearchPage() {
       } else {
         // Filtrer les employés par statut après réception des données
         const filteredEmployes = response.data.filter(employe => {
-          
           if (statut === '') {
             return true; // Retourner tous les employés si aucun statut n'est sélectionné
           } else {
-            // Comparer le statut avec celui reçu de l'API
             return new Date(employe.Date_fin_c) <= new Date() ? "INACTIF" : "ACTIF" === statut;
           }
         });
@@ -101,45 +99,98 @@ function SearchPage() {
     writeFile(workbook, 'export_listeemployes.xlsx');
   };
 
+  const handleReset = () => {
+    setMatricule('');
+    setNom('');
+    setDirection('');
+    setAgence('');
+    setContrat('');
+    setStatut('');
+    setEmployes([]);
+  };
+
   return (
     <div className="search-pag">
-      <h1>Recherche Employé par </h1>
+      <h1>Recherche Employé</h1>
       <form className="search-form" onSubmit={handleSearch}>
-        <input className='form-group' 
+        <input
+          className='form-group'
           type="text"
           placeholder="Matricule"
           value={matricule}
           onChange={(e) => setMatricule(e.target.value)}
         />
-        <input className='form-group'
+        <input
+          className='form-group'
           type="text"
           placeholder="Nom"
           value={nom}
           onChange={(e) => setNom(e.target.value)}
         />
-         <select className='form-grou'onChange={(e) => setContrat(e.target.value)}>
-         <option disabled default selected>Contrat</option>
-          <option value="CDD">cdd</option>
-          <option value="CDI">cdi</option>
-          <option value="STG-ECOLE">stage ecole</option>
+        <select
+          className='form-grou'
+          value={contrat}
+          onChange={(e) => setContrat(e.target.value)}
+        >
+          <option value="">Contrat</option>
+          <option value="CDD">CDD</option>
+          <option value="CDI">CDI</option>
+          <option value="STG-ECOLE">STAGE ECOLE</option>
+          <option value="STG-PROFESSIONNEL">STAGE PROFESSIONNEL</option>
         </select>
-        <select className='form-grou'onChange={(e) => setDirection(e.target.value)}>
-        <option disabled default selected>Direction</option>
-          <option value="DSI">DSI</option>
-          <option value="DFC">DFC</option>
+        <select
+          className='form-grou'
+          value={direction}
+          onChange={(e) => setDirection(e.target.value)}
+        >
+          <option value="">Direction</option>
+          <option value="DG">DIRECTION GENERALE</option>
+          <option value="DSI">DIRECTION SYSTEME D'INFORMATION</option>
+          <option value="DARH">DIRECTION D'ADMINISTRATION ET RESSOURCE HUMAINE</option>
+          <option value="DDC">DIRECTION DU DEVELOPPEMENT COMMERCIAL</option>
+          <option value="DJ">DEPARTEMENT JURIDIQUE</option>
+          <option value="DCIQ">DEPARTEMENT CONTROLE INTERNE ET QUALITE</option>
+          <option value="DFC">DIRECTION FINANCE COMPTABILITE</option>
+          <option value="DEX">DIRECTION EXPERIENCE CLIENT</option>
+          <option value="DOP">DIRECTION DES OPERATIONS</option>
+          <option value="DM">DEPARTEMENT MARKETING</option>
         </select>
-        <select className='form-grou'onChange={(e) => setAgence(e.target.value)}>
-        <option disabled default selected>Agence</option>
-          <option value="ABIDJ">Abidjan</option>
-          <option value="BOUAK">Bouaké</option>
+        <select
+          className='form-grou'
+          value={agence}
+          onChange={(e) => setAgence(e.target.value)}
+        >
+          <option value="">Agence</option>
+          <option value="BOUAKE">AGENCE BOUAKE</option> 
+          <option value="DALOA">AGENCE DALOA</option>
+          <option value="KORHOGO">AGENCE KORHOGO</option>
+          <option value="PLATEAU">AGENCE PLATEAU</option>
+          <option value="SAN-PEDRO">AGENCE SAN-PEDRO</option>
+          <option value="VALLON">AGENCE VALLON</option>
+          <option value="YAMOUSSOKRO">AGENCE YAMOUSSOKRO</option>
         </select>
-        <select className='form-grou' value={statut} onChange={(e) => setStatut(e.target.value)}>
+        <select
+          className='form-grou'
+          value={statut}
+          onChange={(e) => setStatut(e.target.value)}
+        >
           <option value="">Tous les statuts</option>
           <option value="ACTIF">Actif</option>
           <option value="INACTIF">Inactif</option>
         </select>
-        <button className='boutonch' type="submit" disabled={loading}>
+        <button
+          className='boutonch'
+          type="submit"
+          disabled={loading}
+        >
           {loading ? 'Recherche en cours...' : <FaIcons.FaSearch />}
+        </button>
+        <button
+          className='boutonch'
+          type="button"
+          onClick={handleReset}
+        >
+          Réinitialiser
         </button>
       </form>
       <div className="results">
@@ -159,15 +210,15 @@ function SearchPage() {
                   <th>Téléphone</th>
                   <th>Email</th>
                   <th>Nationalité</th>
-                  <th>Numéro contrat</th>
+                  <th>Lieu de travail</th>
                   <th>Agence</th>
                   <th>Statut</th>
-                  <th>&nbsp;&nbsp;&nbsp;...</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {employes.slice(startIndex, endIndex).map((employe, index) => (
-                  <tr key={index}>
+                {employes.slice(startIndex, endIndex).map((employe) => (
+                  <tr key={employe.Mat_employe}>
                     <td>{employe.Mat_employe}</td>
                     <td>{employe.Nom_employe}</td>
                     <td>{employe.Prenom_employe}</td>
@@ -176,49 +227,64 @@ function SearchPage() {
                     <td>{employe.Direction_code}</td>
                     <td>{employe.Type_contrat_Id_type_contrat}</td>
                     <td>{employe.Telephone}</td>
-                    <td>{employe.Email}</td> 
+                    <td>{employe.Email}</td>
                     <td>{employe.Nationnalite}</td>
-                    <td>{employe.N_contrat}</td>
+                    <td>{employe.Nom_agence}</td>
                     <td>{employe.Agence_Id_agence}</td>
-                    <td className={new Date(employe.Date_fin_c) <= new Date() ? 'bg-danger' : 'bg-success'}>
-                      {new Date(employe.Date_fin_c) <= new Date() ? "INACTIF" : "ACTIF"}
-                    </td>
+                    <td>{new Date(employe.Date_fin_c) <= new Date() ? "INACTIF" : "ACTIF"}</td>
                     <td>
-                      <button className='bouton' onClick={() => handleMoreInfo(employe.Mat_employe)}>Plus</button>
+                      <button
+                        className='boutonch'
+                        onClick={() => handleMoreInfo(employe.Mat_employe)}
+                      >
+                        <FaIcons.FaInfoCircle />
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
             <div className="pagination">
-              {currentPage > 1 && (
-                <button className='bouton' onClick={() => handlePageChange(currentPage - 1)}>Précédent</button>
-              )}
-              <span>{currentPage}</span>
-              {currentPage < totalPages && (
-                <button className='bouton' onClick={() => handlePageChange(currentPage + 1)}>Suivant</button>
-              )}
+              <button
+                className='pagination-btn'
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                Précédent
+              </button>
+              <span>Page {currentPage} sur {totalPages}</span>
+              <button
+                className='pagination-btn'
+                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                Suivant
+              </button>
+              <div className="items-per-page">
+                <label>
+                  Articles par page:
+                  <select value={itemsPerPage} onChange={handleItemsPerPageChange}>
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                  </select>
+                </label>
+              </div>
             </div>
-
-            <div>
-              <label htmlFor="itemsPerPage">Items par page:</label>
-              <select id="itemsPerPage" value={itemsPerPage} onChange={handleItemsPerPageChange}>
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-              </select>
-            </div>
-
-            <button className='bouton' onClick={handleExportXLSX}>Exporter en xlsx</button>
-          
           </div>
-          
-        ) : (
-          !loading && <p></p>
+        ) : <p>Aucun résultat à afficher.</p>}
+        {employes.length > 0 && (
+          <div className="search-form">
+          <button
+            className='boutonch'
+            onClick={handleExportXLSX}
+          >
+            Exporter
+          </button>
+          </div>
         )}
       </div>
     </div>
-  
   );
 }
 

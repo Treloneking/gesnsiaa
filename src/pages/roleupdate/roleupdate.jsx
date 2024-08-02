@@ -31,7 +31,7 @@ const UpdateUserRole = () => {
     e.preventDefault();
     try {
       const response = await axios.put('http://localhost:5000/app/role', { Email, role_id_role, direction, employe });
-      alert('requete exécuté avec success');
+      alert('Requête exécutée avec succès');
       setEmail(''); // Reset state
       setRole('');
       setDirection('');
@@ -53,46 +53,47 @@ const UpdateUserRole = () => {
             name="Email"
             value={Email}
             onChange={handleChange}
-           required
+            required
           />
         </div>
         
         <div className="form-group">
-                <label htmlFor="direction">Role :</label>
-                <select
-                  className="form-group"
-                  type="text"
-                  name="role_id_role"
-                  value={role_id_role}
-                  onChange={handleChange}
-                >
-                  <option value="" disabled selected>--------</option>
-                  <option value="Chef">Chef Direction</option>
-                  <option value="admin">Administrateur RH</option>
-                </select>
-              </div>
+          <label htmlFor="role_id_role">Role :</label>
+          <select
+            className="form-group"
+            type="text"
+            name="role_id_role"
+            value={role_id_role}
+            onChange={handleChange}
+          >
+            <option value="" disabled>--------</option>
+            <option value="Chef">Chef Direction</option>
+            <option value="admin">Administrateur RH</option>
+          </select>
+        </div>
         
         <div className="form-group">
-                <label htmlFor="direction">*Direction :</label>
-                <select
-                  id="direction"
-                  name="Direction_code"
-                  onChange={handleChange}
-                  value={direction}
-                >
-                  <option value="" disabled selected>--------</option>
-                  <option value="DG">DIRECTION GENERALE</option>
-                  <option value="DSI">DIRECTION SYSTEME D'INFORMATION</option>
-                  <option value="DARH">DIRECTION D'ADMINISTRATION ET RESSOURCE HUMAINE</option>
-                  <option value="DDC">DIRECTION DU DEVELOPPEMENT COMMERCIAL</option>
-                  <option value="DJ">DEPARTEMENT JURIDIQUE</option>
-                  <option value="DCIQ">DEPARTEMENT CONTROLE INTERNE ET QUALITE</option>
-                  <option value="DFC">DIRECTION FINANCE COMPTABILITE</option>
-                  <option value="DEX">DIRECTION EXPERIENCE CLIENT</option>
-                  <option value="DOP">DIRECTION DES OPERATIONS</option>
-                  <option value="DM">DEPARTEMENT MARKETING</option>
-                </select>
-              </div>
+          <label htmlFor="direction">Direction :</label>
+          <select
+            id="direction"
+            name="direction"
+            onChange={handleChange}
+            value={direction}
+          >
+            <option value="" disabled>--------</option>
+            <option value="DG">DIRECTION GENERALE</option>
+            <option value="DSI">DIRECTION SYSTEME D'INFORMATION</option>
+            <option value="DARH">DIRECTION D'ADMINISTRATION ET RESSOURCE HUMAINE</option>
+            <option value="DDC">DIRECTION DU DEVELOPPEMENT COMMERCIAL</option>
+            <option value="DJ">DEPARTEMENT JURIDIQUE</option>
+            <option value="DCIQ">DEPARTEMENT CONTROLE INTERNE ET QUALITE</option>
+            <option value="DFC">DIRECTION FINANCE COMPTABILITE</option>
+            <option value="DEX">DIRECTION EXPERIENCE CLIENT</option>
+            <option value="DOP">DIRECTION DES OPERATIONS</option>
+            <option value="DM">DEPARTEMENT MARKETING</option>
+          </select>
+        </div>
+        
         <div>
           <label>Matricule associé:</label>
           <input
@@ -101,9 +102,9 @@ const UpdateUserRole = () => {
             name="employe"
             value={employe}
             onChange={handleChange}
-            
           />
         </div>
+        
         <button className="bouton" type="submit">Valider</button>
       </form>
     </div>
@@ -111,3 +112,4 @@ const UpdateUserRole = () => {
 };
 
 export default UpdateUserRole;
+

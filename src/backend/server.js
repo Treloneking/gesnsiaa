@@ -11,7 +11,8 @@ if (!jwtSecret) {
 }
 
 const multer = require('multer');
-
+const nodemailer = require('nodemailer');
+const schedule = require('node-schedule');
 const express = require('express');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
@@ -177,57 +178,47 @@ app.get('/app/plusinfo', (req, res) => {
 
 
 app.get('/app/recherche', (req, res) => {
-  const { matricule, nom, direction, agence,contrat } = req.query;
+  const { matricule, nom, direction, agence, contrat } = req.query;
   let sql = `
-  SELECT e.* ,t.*,c.*
-  FROM Employe e
-  LEFT JOIN Contrat c ON c.Employe_Mat_employe = e.Mat_employe
-  LEFT JOIN Travail t ON t.Employe_Mat_employe = e.Mat_employe
-  ORDER BY Nom_employe
-`;
+    SELECT e.*, t.*, c.*,a.*
+    FROM Employe e
+    LEFT JOIN Contrat c ON c.Employe_Mat_employe = e.Mat_employe
+    LEFT JOIN Travail t ON t.Employe_Mat_employe = e.Mat_employe
+    LEFT JOIN Agence a ON a.Id_agence = t.Agence_Id_agence
+  `;
   let params = [];
+  let conditions = [];
 
-  if (matricule || nom || direction || agence || contrat) {
-    sql += 'WHERE ';
-    if (matricule) {
-      sql += 'e.Mat_employe LIKE ?';
-      params.push(`%${matricule}%`);
-    }
-    if (nom) {
-      if (matricule) {
-        sql += ' AND ';
-      }
-      sql += 'e.Nom_employe LIKE ?';
-      params.push(`%${nom}%`);
-    }
-    if (direction) {
-      if (matricule || nom) {
-        sql += ' AND ';
-      }
-      sql += 'e.Direction_code LIKE ?';
-      params.push(`%${direction}%`);
-    }
-    if (agence) {
-      if (matricule || nom || direction) {
-        sql += ' AND ';
-      }
-      sql += 't.Agence_Id_agence LIKE ?';
-      params.push(`%${agence}%`);
-    }
-    if (contrat) {
-      if (matricule||nom||direction||agence){
-        sql += ' AND ';
-      }
-      sql += 'c.Type_contrat_Id_type_contrat LIKE ?';
-      params.push(`%${contrat}%`);
-    }
-
-    
+  if (matricule) {
+    conditions.push('e.Mat_employe LIKE ?');
+    params.push(`%${matricule}%`);
+  }
+  if (nom) {
+    conditions.push('e.Nom_employe LIKE ?');
+    params.push(`%${nom}%`);
+  }
+  if (direction) {
+    conditions.push('e.Direction_code LIKE ?');
+    params.push(`%${direction}%`);
+  }
+  if (agence) {
+    conditions.push('t.Agence_Id_agence LIKE ?');
+    params.push(`%${agence}%`);
+  }
+  if (contrat) {
+    conditions.push('c.Type_contrat_Id_type_contrat LIKE ?');
+    params.push(`%${contrat}%`);
   }
 
-  db.query(sql, params, (err, results) => {
+  if (conditions.length > 0) {
+    sql += ' WHERE ' + conditions.join(' AND ');
+  }
 
+  sql += ' ORDER BY e.Nom_employe';
+
+  db.query(sql, params, (err, results) => {
     if (err) {
+      console.error('Erreur de la base de données:', err);
       return res.status(500).json({ error: 'Erreur de la base de données' });
     }
     res.json(results);
@@ -305,44 +296,61 @@ WHERE Mat_employe=?
 app.put('/app/role', (req, res) => {
   const { Email, role_id_role, direction, employe } = req.body;
 
-  // Check if the employe_Mat_employe is already set for the user
-  db.query('SELECT employe_Mat_employe FROM utilisateur WHERE Email = ?', [Email], (err, results) => {
+  // Check if the direction exists in the direction table
+  db.query('SELECT * FROM direction WHERE Code_direction = ?', [direction], (err, directionResults) => {
     if (err) {
-      console.error('Error fetching user:', err);
-      return res.status(500).json({ error: 'Une erreur s\'est produite lors de la récupération de l\'utilisateur.' });
+      console.error('Error fetching direction:', err);
+      return res.status(500).json({ error: 'Une erreur s\'est produite lors de la récupération de la direction.' });
     }
 
-    const existingEmploye = results[0].employe_Mat_employe;
+    if (directionResults.length === 0) {
+      return res.status(400).json({ error: 'La direction spécifiée n\'existe pas.' });
+    }
 
-    // If employe_Mat_employe is already set, don't update it
-    if (existingEmploye) {
-      db.query(
-        'UPDATE utilisateur SET role_id_role = ?, direction = ? WHERE Email = ?',
-        [role_id_role, direction, Email],
-        (err, result) => {
+    // Check if the employe_Mat_employe is already set for the user
+    db.query('SELECT employe_Mat_employe FROM utilisateur WHERE Email = ?', [Email], (err, userResults) => {
+      if (err) {
+        console.error('Error fetching user:', err);
+        return res.status(500).json({ error: 'Une erreur s\'est produite lors de la récupération de l\'utilisateur.' });
+      }
+
+      const existingEmploye = userResults[0].employe_Mat_employe;
+
+      if (existingEmploye) {
+        // If employe_Mat_employe is already set, don't update it
+        db.query(
+          'UPDATE utilisateur SET role_id_role = ?, direction = ? WHERE Email = ?',
+          [role_id_role, direction, Email],
+          (err, result) => {
+            if (err) {
+              console.error('Error updating user role:', err);
+              return res.status(500).json({ error: 'Une erreur s\'est produite lors de la mise à jour du rôle de l\'utilisateur.' });
+            }
+            res.status(200).json({ message: 'Le rôle de l\'utilisateur a été mis à jour avec succès.' });
+          }
+        );
+      } else {
+        // If employe_Mat_employe is not set and employe is provided, update all fields
+        const query = employe
+          ? 'UPDATE utilisateur SET role_id_role = ?, direction = ?, employe_Mat_employe = ? WHERE Email = ?'
+          : 'UPDATE utilisateur SET role_id_role = ?, direction = ? WHERE Email = ?';
+        const params = employe
+          ? [role_id_role, direction, employe, Email]
+          : [role_id_role, direction, Email];
+
+        db.query(query, params, (err, result) => {
           if (err) {
             console.error('Error updating user role:', err);
             return res.status(500).json({ error: 'Une erreur s\'est produite lors de la mise à jour du rôle de l\'utilisateur.' });
           }
           res.status(200).json({ message: 'Le rôle de l\'utilisateur a été mis à jour avec succès.' });
-        }
-      );
-    } else {
-      // If employe_Mat_employe is not set, update all fields
-      db.query(
-        'UPDATE utilisateur SET role_id_role = ?, direction = ?, employe_Mat_employe = ? WHERE Email = ?',
-        [role_id_role, direction, employe, Email],
-        (err, result) => {
-          if (err) {
-            console.error('Error updating user role:', err);
-            return res.status(500).json({ error: 'Une erreur s\'est produite lors de la mise à jour du rôle de l\'utilisateur.' });
-          }
-          res.status(200).json({ message: 'Le rôle de l\'utilisateur a été mis à jour avec succès.' });
-        }
-      );
-    }
+        });
+      }
+    });
   });
 });
+
+
 
 
 app.get('/app/archive', (req, res) => {
@@ -384,6 +392,65 @@ app.get('/app/contrat', (req, res) => {
   });
 });
 
+
+const transporter = nodemailer.createTransport({
+  host: 'smtp.office365.com',
+  port: 587,
+  secure: false, // true pour le port 465, false pour le port 587
+  auth: {
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD
+  },
+  tls: {
+    rejectUnauthorized: false // Optionnel pour éviter les erreurs de certificat
+  }
+});
+
+// Fonction pour envoyer un email
+const sendEmail = (to, subject, text) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USERNAME,
+    to: to,
+    subject: subject,
+    text: text
+  };
+
+  console.log(`Tentative d'envoi d'un email à ${to}`);
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log('Erreur lors de l\'envoi de l\'email:', error);
+    } else {
+      console.log('Email envoyé: ' + info.response);
+    }
+  });
+};
+
+// Fonction pour notifier le chef de la direction
+const notifyChef = (direction) => {
+  // Requête pour récupérer l'email du chef de direction en fonction de la direction
+  const query = 'SELECT Email FROM utilisateur WHERE role_id_role = ? AND direction = ?';
+
+  db.query(query, ['Chef', direction], (err, results) => {
+    if (err) {
+      console.error('Erreur lors de la récupération de l\'email du chef de direction:', err);
+      return;
+    }
+
+    if (results.length === 0) {
+      console.log('Aucun chef de direction trouvé pour la direction:', direction);
+      return;
+    }
+
+    const chefEmail = results[0].Email;
+    const subject = 'Nouvel employé enregistré';
+    const text = `Bonjour,\n\nUn nouvel employé a été ajouté dans la direction ${direction}\n
+    Veuillez vous connecter à l'application pour le voir.
+      .\n\nCordialement,\nLa RH`;
+
+    // Envoi de l'email
+    sendEmail(chefEmail, subject, text);
+  });
+};
 
 // Route pour l'inscription
 app.post('/app/register', (req, res) => {
@@ -531,7 +598,7 @@ app.post('/app/register', (req, res) => {
                   res.status(500).json({ error: err.message });
                 });
               }
-
+              notifyChef(Direction_code);
               // Valider la transaction
               db.commit((err) => {
                 if (err) {
@@ -549,7 +616,7 @@ app.post('/app/register', (req, res) => {
   });
 });
 
-
+// Route pour l'importation de données
 app.post('/app/import', (req, res) => {
   const data = req.body;
 
@@ -708,6 +775,9 @@ app.post('/app/import', (req, res) => {
                   }
                   // Confirmation pour chaque ligne importée
                   console.log(`Employé ${Matricule} importé avec succès`);
+
+                  // Notification au chef de direction
+                  notifyChef(Direction);
                 });
               });
             });
@@ -791,39 +861,94 @@ app.get('/app/comptes', (req, res) => {
   });
 });
 
-
 // Endpoint pour autoriser les comptes sélectionnés pour un employé spécifique
 app.post('/app/authorizeComptes', async (req, res) => {
-  const { matricule, comptes } = req.body;
+  const { matricule, comptes, direction } = req.body;
 
   if (!matricule || !comptes || !Array.isArray(comptes)) {
     return res.status(400).json({ message: 'Entrée invalide' });
   }
 
   try {
-    // Begin transaction
+    // Démarrer la transaction
     await db.query('START TRANSACTION');
 
-    // Insert into employe_compte
+    // Insérer dans employe_compte
     const insertQueries = comptes.map((compteId) => {
       return db.query('INSERT INTO employe_compte (Employe_Mat_employe, Compte_Id_compte) VALUES (?, ?)', [matricule, compteId]);
     });
     await Promise.all(insertQueries);
 
-    // Delete from newemploye
+    // Supprimer de newemploye
     await db.query('DELETE FROM newemploye WHERE Employe_Mat_employe = ?', [matricule]);
 
-    // Commit transaction
-    await db.query('COMMIT');
+    // Récupérer les informations de l'employé et des comptes
+    const selectQuery = `
+      SELECT *
+      FROM employe_compte ec
+      LEFT JOIN employe e ON ec.Employe_Mat_employe = e.Mat_employe
+      LEFT JOIN compte c ON ec.Compte_Id_compte = c.Id_compte
+      WHERE ec.Employe_Mat_employe = ?
+    `;
 
-    res.status(200).json({ message: 'Comptes autorisés avec succès et employé supprimé de la table newemploye' });
+    db.query(selectQuery, [matricule], async (error, results, fields) => {
+      if (error) {
+        console.error('Erreur lors de la récupération des informations :', error);
+        // Annuler la transaction en cas d'erreur
+        await db.query('ROLLBACK');
+        return res.status(500).json({ message: 'Erreur lors de la récupération des informations' });
+      }
+
+      if (results.length === 0) {
+        console.log('Aucun résultat trouvé pour le matricule:', matricule);
+        // Valider la transaction même si aucun résultat n'est trouvé
+        await db.query('COMMIT');
+        return res.status(404).json({ message: 'Aucun résultat trouvé pour le matricule' });
+      }
+
+      console.log('Informations de l\'employé et comptes associés :', results);
+
+      // Valider la transaction
+      await db.query('COMMIT');
+
+      // Construire le corps de l'email
+      const subject = 'Création de compte pour le nouvel employé';
+      const employeeName = `${results[0].Prenom_employe} ${results[0].Nom_employe}`;
+      const accountDetails = results.map(info => `Application: ${info.Application}`).join('\n');
+
+      const text = `
+        Bonjour,
+
+        Veuillez créer un compte pour le nouvel employé avec le matricule ${matricule}.
+        Nom de l'employé : ${employeeName}
+        Détails des comptes :
+        ${accountDetails}
+
+        Merci.
+
+        Cordialement,
+        ${direction}
+      `;
+
+      // Envoyer l'e-mail de notification
+      const emails = ['tresor.yao@nsiaassurances.com'];
+      // const emails = ['assistancedsivie@nsiaassurances.com', 'Support_VIECI@nsiaassurances.com'];
+
+      for (const email of emails) {
+        await sendEmail(email, subject, text);
+      }
+
+      res.status(200).json({ message: 'Comptes autorisés avec succès et employé supprimé de la table newemploye' });
+    });
   } catch (error) {
-    // Rollback transaction on error
+    // Annuler la transaction en cas d'erreur
     await db.query('ROLLBACK');
     console.error('Erreur lors de l\'autorisation des comptes et de la suppression de l\'employé :', error);
     res.status(500).json({ message: 'Erreur lors de l\'autorisation des comptes et de la suppression de l\'employé' });
   }
 });
+
+
 
 // Endpoint to get the number of employees in a specific direction
 app.get('/app/dashboarddirection', (req, res) => {
@@ -879,10 +1004,6 @@ app.post('/app/validatecreation', (req, res) => {
     res.json({ message: `Compte pour matricule ${matricule} validé avec succès.` });
   });
 });
-
-
-
-
 app.listen(port, () => {
   console.log(`Serveur démarré sur le port ${port}`);
 });

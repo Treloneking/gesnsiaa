@@ -79,7 +79,7 @@ function PlusInfo() {
         <p><strong>Responsable direction:</strong> {formData.Chef_direction}</p>
         <p><strong>Date debut a l'agence:</strong> {formatDate(formData.Date_debut)}</p>
         <p><strong>Date fin a l'agence :</strong> {formatDate(formData.Date_fin)}</p>
-        <p><strong>Nom agence:</strong> {formData.Nom_agence}</p>
+        <p><strong>Lieu de travail:</strong> {formData.Nom_agence}</p>
         <p><strong>Lieu agence:</strong> {formData.Lieu_agence}</p>
         <button onClick={() => handleModify(formData.Mat_employe)}>Modifier</button>
         </li>

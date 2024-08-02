@@ -42,9 +42,9 @@ function Navbar() {
         <>
             <IconContext.Provider value={{ color: '#fff' }}>
                 <div className='nav-bar'>
-                    <Link to="/app" className='menu-bars'>
+                    <div className='menu-bars'>
                         <FaIcons.FaBars onClick={showSidebar} />
-                    </Link>
+                    </div>
                     <div className='nav-bar-icons'>
                         <IoIcons.IoMdNotificationsOutline className='notification-icon' onClick={handleNotification} />
                     </div>
